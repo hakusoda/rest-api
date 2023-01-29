@@ -8,7 +8,6 @@ export function handler(methods: string[], func: Handler): WrappedHandler {
 	return (req: Request) => {
 		if (!methods.includes(req.method))
 			return error(405, 'METHOD_NOT_ALLOWED');
-		console.log(req.url);
 		return func({
 			...req,
 			query: Object.fromEntries(new URL(req.url, 'https://example.com').searchParams.entries())

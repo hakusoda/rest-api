@@ -12,10 +12,9 @@ export default GET(async request => {
 
 	const release = await getLatestRelease(repository);
 	return json({
-		url: release.html_url,
-		title: release.tag_name,
-		body: release.body,
-		platforms: await getPlatforms(release),
-		date_published: release.published_at
+		notes: release.body,
+		version: release.tag_name,
+		pub_date: release.published_at,
+		platforms: await getPlatforms(release)
 	}, undefined, 3600);
 });
