@@ -5,7 +5,7 @@
 	"scripts": {
 		"pull": "vercel pull",
 		"start": "vercel dev",
-		"deploy": "vercel deploy"
+		"deploy": "vercel deploy --prod"
 	},
 	"devDependencies": {},
 	"dependencies": {
