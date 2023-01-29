@@ -4,13 +4,14 @@ export interface WrappedRequest extends Request {
 }
 export type Handler = (request: WrappedRequest) => Response | Promise<Response>
 export type WrappedHandler = (request: Request) => Response | Promise<Response>
-export function handler(methods: string[], handler: Handler): WrappedHandler {
+export function handler(methods: string[], func: Handler): WrappedHandler {
 	return (req: Request) => {
 		if (!methods.includes(req.method))
 			return error(405, 'METHOD_NOT_ALLOWED');
-		return handler({
+		console.log(req.url);
+		return func({
 			...req,
-			query: Object.fromEntries(new URL(req.url).searchParams.entries())
+			query: Object.fromEntries(new URL(req.url, 'https://example.com').searchParams.entries())
 		});
 	};
 }

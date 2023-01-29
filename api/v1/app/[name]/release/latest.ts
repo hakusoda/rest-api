@@ -1,5 +1,5 @@
-import { GET } from '../../../../src/helpers';
-import { json, error } from '../../../../src/helpers/response';
+import { GET } from '../../../../../src/helpers';
+import { json, error } from '../../../../../src/helpers/response';
 
 export const config = { runtime: 'edge' };
 export default GET(async request => {
