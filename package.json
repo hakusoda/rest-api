@@ -3,8 +3,9 @@
 	"version": "1.0.0",
 	"license": "MIT",
 	"scripts": {
+		"pull": "vercel pull",
 		"start": "vercel dev",
-		"pull": "vercel pull"
+		"deploy": "vercel deploy"
 	},
 	"devDependencies": {},
 	"dependencies": {
