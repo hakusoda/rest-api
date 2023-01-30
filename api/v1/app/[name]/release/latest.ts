@@ -15,6 +15,7 @@ export default GET(async request => {
 		url: release.html_url,
 		title: release.tag_name,
 		body: release.body,
+		version: release.tag_name.replace(/^v/g, ''),
 		platforms: await getPlatforms(release),
 		date_published: release.published_at
 	}, undefined, 3600);
