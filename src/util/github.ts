@@ -1,10 +1,18 @@
-export function getLatestRelease(repository: string): Promise<GithubRelease> {
-	return fetch(`${API_BASE}/repos/${repository}/releases/latest`, {
+import { AppReleaseChannel } from './enums';
+export async function getLatestRelease(repository: string, channel: string) {
+	const releases: GithubRelease[] = await fetch(`${API_BASE}/repos/${repository}/releases`, {
 		headers: {
 			Accept: 'application/vnd.github+json"',
 			Authorization: `Bearer ${process.env.GITHUB_TOKEN}`
 		}
 	}).then(r => r.json());
+	if (channel === AppReleaseChannel.Beta) {
+		const release = releases[0];
+		if (release.prerelease && release.tag_name.includes('beta'))
+			return release;
+	}
+
+	return releases.find(r => !r.prerelease)!;
 }
 
 export const API_BASE = 'https://api.github.com';
@@ -33,6 +41,7 @@ export interface GithubRelease {
 	assets_url: string
 	upload_url: string
 	created_at: string
+	prerelease: boolean
 	published_at: string
 }
 

@@ -12,6 +12,10 @@ export function json(json: any, status: number = 200, maxAge?: number) {
 	})
 }
 
+export function status(code: number) {
+	return new Response(null, { status: code });
+}
+
 export function error(code: number, id: string) {
 	return json({
 		error: true,

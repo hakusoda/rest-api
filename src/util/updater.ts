@@ -1,4 +1,4 @@
-import type { GithubRelease } from "./github";
+import type { GithubRelease } from './github';
 export async function getPlatforms(release: GithubRelease) {
 	const data = {};
 	for (const { name, browser_download_url } of release.assets) {
