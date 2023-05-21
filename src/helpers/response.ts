@@ -16,9 +16,10 @@ export function status(code: number) {
 	return new Response(null, { status: code });
 }
 
-export function error(code: number, id: string) {
+export function error(code: number, id: string, details?: any) {
 	return json({
 		error: true,
-		error_id: id
+		error_id: id,
+		details
 	}, code);
 }
