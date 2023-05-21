@@ -9,6 +9,7 @@
 	},
 	"devDependencies": {},
 	"dependencies": {
+		"@supabase/supabase-js": "^2.22.0",
 		"@types/node": "^18.11.18"
 	}
 }
