@@ -2,8 +2,8 @@ import type { Buffer } from 'node:buffer';
 
 import { error } from './helpers/response';
 import { supabase } from './supabase';
-import type { User } from './types';
 import type { ApiRequest } from './helpers';
+import type { User, RobloxLink, RobloxLinkType } from './types';
 
 const uuidPattern = /\w{8}-\w{4}-\w{4}-\w{4}-\w{12}/;
 export async function getUser(userId: string): Promise<User | null> {
@@ -21,15 +21,31 @@ export async function getUser(userId: string): Promise<User | null> {
 	};
 }
 
+export async function getUserId(userId: string): Promise<string | null> {
+	const { data, error } = await supabase.from('users').select('id').eq(uuidPattern.test(userId) ? 'id' : 'username', userId);
+	if (error)
+		return null;
+
+	const user = data?.[0] as any;
+	if (!user)
+		return null;
+
+	return user.id;
+}
+
 export function getUserAvatar(userId: string) {
 	return supabase.storage.from('avatars').getPublicUrl(`user/${userId}.png`).data.publicUrl;
 }
 
-function check(buffer: Buffer, headers: number[]) {
-	for (const [index, header] of headers.entries())
-		if (header !== buffer[index])
-			return false;
-	return true;
+export async function getUserRobloxLinks(userId: string, type?: RobloxLinkType): Promise<RobloxLink[]> {
+	let filter = supabase.from('roblox_links').select('*').eq('owner', userId);
+	if (typeof type !== 'number' || !Number.isNaN(type))
+		filter = filter.eq('type', type);
+
+	const { data, error } = await filter;
+	if (error)
+		return [];
+	return data as any ?? [];
 }
 
 export async function uploadAvatar(userId: string, buffer: Buffer) {
