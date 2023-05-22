@@ -7,7 +7,7 @@ export function json(json: any, status: number = 200, maxAge?: number) {
 		status,
 		headers: {
 			'Content-Type': 'application/json',
-			...maxAge && { 'Cache-Control': `s-maxage=${maxAge}` }
+			...maxAge && { 'Cache-Control': `public, s-maxage=${maxAge}, stale-while-revalidate=600` }
 		}
 	})
 }

@@ -8,5 +8,5 @@ export default GET(async request => {
 	if (!userId)
 		return error(404, 'NOT_FOUND');
 
-	return json(await getUserRobloxLinks(userId, parseInt(request.query.type)), 200, 60000);
+	return json(await getUserRobloxLinks(userId, parseInt(request.query.type)), 200, 300);
 });

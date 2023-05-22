@@ -8,5 +8,5 @@ export default GET(async request => {
 	if (!user)
 		return error(404, 'NOT_FOUND');
 
-	return json(user, 200, 60000);
+	return json(user, 200, 300);
 });

@@ -21,7 +21,6 @@ export default POST(async request => {
 		id: user.id,
 		username
 	}).select();
-	console.log(insertError);
 	if (insertError || !data?.[0])
 		return error(500, 'POSTGRES_ERROR');
 

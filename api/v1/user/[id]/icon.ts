@@ -15,7 +15,6 @@ export default PATCH(async request => {
 	if (response instanceof Response)
 		return response;
 
-	console.log(response.error);
 	if (response.error)
 		return error(500, 'UPLOAD_ERROR', response.error.message);
 	return status(200);
