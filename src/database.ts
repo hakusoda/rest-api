@@ -3,28 +3,34 @@ import type { Buffer } from 'node:buffer';
 import { error } from './helpers/response';
 import { supabase } from './supabase';
 import type { ApiRequest } from './helpers';
-import type { User, RobloxLink, RobloxLinkType } from './types';
+import type { ApiUser, ApiTeam, RobloxLink, RobloxLinkType } from './types';
 
 const uuidPattern = /\w{8}-\w{4}-\w{4}-\w{4}-\w{12}/;
-export async function getUser(userId: string): Promise<User | null> {
-	const { data, error } = await supabase.from('users').select('*').eq(uuidPattern.test(userId) ? 'id' : 'username', userId);
-	if (error)
+export async function getUser(userId: string) {
+	const { data, error } = await supabase.from('users').select<string, ApiUser>('id, bio, name, flags, username, created_at').eq(uuidPattern.test(userId) ? 'id' : 'username', userId).limit(1).maybeSingle();
+	if (error) {
+		console.error(error);
 		return null;
+	}
 
-	const user = data?.[0] as any;
-	if (!user)
+	if (!data)
 		return null;
 
 	return {
-		...user,
-		avatar_url: getUserAvatar(user.id)
+		...data,
+		avatar_url: getUserAvatar(data.id)
 	};
 }
 
 export async function getUserId(userId: string): Promise<string | null> {
-	const { data, error } = await supabase.from('users').select('id').eq(uuidPattern.test(userId) ? 'id' : 'username', userId);
-	if (error)
+	if (uuidPattern.test(userId))
+		return userId;
+
+	const { data, error } = await supabase.from('users').select('id').eq('username', userId);
+	if (error) {
+		console.error(error);
 		return null;
+	}
 
 	const user = data?.[0] as any;
 	if (!user)
@@ -38,7 +44,7 @@ export function getUserAvatar(userId: string) {
 }
 
 export async function getUserRobloxLinks(userId: string, type?: RobloxLinkType): Promise<RobloxLink[]> {
-	let filter = supabase.from('roblox_links').select('*').eq('owner', userId);
+	let filter = supabase.from('roblox_links').select('id, type, flags, owner, public, target_id, created_at').eq('owner', userId);
 	if (typeof type !== 'number' || !Number.isNaN(type))
 		filter = filter.eq('type', type);
 
@@ -46,6 +52,31 @@ export async function getUserRobloxLinks(userId: string, type?: RobloxLinkType):
 	if (error)
 		return [];
 	return data as any ?? [];
+}
+
+export async function getTeam(teamId: string) {
+	const { data, error } = await supabase.from('teams').select<string, ApiTeam>('id, bio, name, flags, members:team_members ( role, user:users ( id, bio, name, flags, username, created_at ) ), created_at, display_name').eq(uuidPattern.test(teamId) ? 'id' : 'name', teamId).limit(1).maybeSingle();
+	if (error) {
+		console.error(error);
+		return null;
+	}
+
+	if (!data)
+		return null;
+
+	return {
+		...data,
+		members: data.members.map(member => ({
+			...member.user,
+			avatar_url: getUserAvatar(member.user.id),
+			role: member.role
+		})),
+		avatar_url: getTeamAvatar(data.id)
+	};
+}
+
+export function getTeamAvatar(teamId: string) {
+	return supabase.storage.from('avatars').getPublicUrl(`team/${teamId}.png`).data.publicUrl;
 }
 
 export async function uploadAvatar(userId: string, buffer: Buffer) {
