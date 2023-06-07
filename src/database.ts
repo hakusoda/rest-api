@@ -55,7 +55,7 @@ export async function getUserRobloxLinks(userId: string, type?: RobloxLinkType):
 }
 
 export async function getTeam(teamId: string) {
-	const { data, error } = await supabase.from('teams').select<string, ApiTeam>('id, bio, name, flags, members:team_members ( role, user:users ( id, bio, name, flags, username, created_at ) ), created_at, display_name').eq(uuidPattern.test(teamId) ? 'id' : 'name', teamId).limit(1).maybeSingle();
+	const { data, error } = await supabase.from('teams').select<string, ApiTeam>('id, bio, name, flags, members:team_members ( role, user:users ( id, bio, name, flags, username, created_at ), joined_at ), created_at, display_name').eq(uuidPattern.test(teamId) ? 'id' : 'name', teamId).limit(1).maybeSingle();
 	if (error) {
 		console.error(error);
 		return null;
@@ -69,7 +69,8 @@ export async function getTeam(teamId: string) {
 		members: data.members.map(member => ({
 			...member.user,
 			avatar_url: getUserAvatar(member.user.id),
-			role: member.role
+			role: member.role,
+			joined_at: member.joined_at
 		})),
 		avatar_url: getTeamAvatar(data.id)
 	};

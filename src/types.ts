@@ -33,6 +33,7 @@ export interface ApiTeam {
 	members: {
 		role: number
 		user: ApiUser
+		joined_at: number
 	}[]
 	created_at: string
 	display_name: string
