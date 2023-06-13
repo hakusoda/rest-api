@@ -1,6 +1,9 @@
 import type { GithubRelease } from './github';
 export async function getPlatforms(release: GithubRelease) {
-	const data = {};
+	const data: Record<string, {
+		url: string
+		signature: string | null
+	}> = {};
 	for (const { name, browser_download_url } of release.assets) {
 		const platform = Object.keys(platforms).find(p => browser_download_url.match(p));
 		if (platform)
@@ -20,11 +23,11 @@ export function getSignature(name: string, assets: any[]) {
     return fetch(signature.browser_download_url).then(r => r.text());
 }
 
-export const platforms = {
+export const platforms: Record<string, string> = {
 	'\.msi\.zip$': 'windows-x86_64',
 	'\.deb\.tar\.gz$': 'linux-x86_64',
 	'\.AppImage\.tar\.gz$': 'linux-x86_64'
-};
-export const repositories = {
+}
+export const repositories: Record<string, string> = {
 	mdpkm: 'Blookerss/mdpkm'
-};
+}

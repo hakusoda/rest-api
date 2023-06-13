@@ -1,8 +1,7 @@
-import type { Buffer } from 'node:buffer';
+import { ImageResponse } from 'next/server';
 
-import { error } from './helpers/response';
+import { error } from './response';
 import { supabase } from './supabase';
-import type { ApiRequest } from './helpers';
 import type { ApiUser, ApiTeam, RobloxLink, RobloxLinkType } from './types';
 
 const uuidPattern = /\w{8}-\w{4}-\w{4}-\w{4}-\w{12}/;
@@ -80,23 +79,27 @@ export function getTeamAvatar(teamId: string) {
 	return supabase.storage.from('avatars').getPublicUrl(`team/${teamId}.png`).data.publicUrl;
 }
 
-export async function uploadAvatar(userId: string, buffer: Buffer) {
-	// TODO: somehow implement image resizing,
-	// there doesn't appear to be any libraries that work with the edge runtime...
-	return supabase.storage.from('avatars').upload(`user/${userId}.png`, buffer.buffer, {
+export async function uploadAvatar(userId: string, buffer: ArrayBuffer) {
+	const image = new ImageResponse(<img src={buffer as any} width="256" height="256"/>, {
+		width: 256,
+		height: 256
+	}) as Response;
+	return supabase.storage.from('avatars').upload(`user/${userId}.png`, await image.arrayBuffer(), {
+		upsert: true,
 		contentType: 'image/png'
 	});
 }
 
-export async function getRequestingUser(request: ApiRequest) {
-	const token = request.headers.get('authorization')?.slice(7);
+export async function getRequestingUser(headers: Headers) {
+	const token = headers.get('authorization')?.slice(7);
 	if (!token)
-		return error(401, 'INVALID_AUTH');
+		return null;
 
 	const { data: { user }, error: userError } = await supabase.auth.getUser(token);
-	if (userError)
-		return error(500, 'AUTH_ERROR');
-	if (!user)
-		return error(401, 'INVALID_AUTH');
+	if (userError) {
+		console.error(userError);
+		return null;
+	}
+	
 	return user;
 }
