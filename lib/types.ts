@@ -23,6 +23,7 @@ export interface ApiUser {
 	name: string | null
 	flags: number
 	username: string
+	avatar_url: string
 	created_at: string
 }
 export interface ApiTeam {
@@ -35,6 +36,7 @@ export interface ApiTeam {
 		user: ApiUser
 		joined_at: number
 	}[]
+	avatar_url: string
 	created_at: string
 	display_name: string
 }

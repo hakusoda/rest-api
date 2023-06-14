@@ -1,24 +1,17 @@
 import { ImageResponse } from 'next/server';
 
-import { error } from './response';
 import { supabase } from './supabase';
 import type { ApiUser, ApiTeam, RobloxLink, RobloxLinkType } from './types';
 
 const uuidPattern = /\w{8}-\w{4}-\w{4}-\w{4}-\w{12}/;
 export async function getUser(userId: string) {
-	const { data, error } = await supabase.from('users').select<string, ApiUser>('id, bio, name, flags, username, created_at').eq(uuidPattern.test(userId) ? 'id' : 'username', userId).limit(1).maybeSingle();
+	const { data, error } = await supabase.from('users').select<string, ApiUser>('id, bio, name, flags, username, avatar_url, created_at').eq(uuidPattern.test(userId) ? 'id' : 'username', userId).limit(1).maybeSingle();
 	if (error) {
 		console.error(error);
 		return null;
 	}
 
-	if (!data)
-		return null;
-
-	return {
-		...data,
-		avatar_url: getUserAvatar(data.id)
-	};
+	return data;
 }
 
 export async function getUserId(userId: string): Promise<string | null> {
@@ -38,10 +31,6 @@ export async function getUserId(userId: string): Promise<string | null> {
 	return user.id;
 }
 
-export function getUserAvatar(userId: string) {
-	return supabase.storage.from('avatars').getPublicUrl(`user/${userId}.png`).data.publicUrl;
-}
-
 export async function getUserRobloxLinks(userId: string, type?: RobloxLinkType): Promise<RobloxLink[]> {
 	let filter = supabase.from('roblox_links').select('id, type, flags, owner, public, target_id, created_at').eq('owner', userId);
 	if (typeof type !== 'number' || !Number.isNaN(type))
@@ -54,7 +43,7 @@ export async function getUserRobloxLinks(userId: string, type?: RobloxLinkType):
 }
 
 export async function getTeam(teamId: string) {
-	const { data, error } = await supabase.from('teams').select<string, ApiTeam>('id, bio, name, flags, members:team_members ( role, user:users ( id, bio, name, flags, username, created_at ), joined_at ), created_at, display_name').eq(uuidPattern.test(teamId) ? 'id' : 'name', teamId).limit(1).maybeSingle();
+	const { data, error } = await supabase.from('teams').select<string, ApiTeam>('id, bio, name, flags, members:team_members ( role, user:users ( id, bio, name, flags, username, avatar_url, created_at ), joined_at ), avatar_url, created_at, display_name').eq(uuidPattern.test(teamId) ? 'id' : 'name', teamId).limit(1).maybeSingle();
 	if (error) {
 		console.error(error);
 		return null;
@@ -67,16 +56,10 @@ export async function getTeam(teamId: string) {
 		...data,
 		members: data.members.map(member => ({
 			...member.user,
-			avatar_url: getUserAvatar(member.user.id),
 			role: member.role,
 			joined_at: member.joined_at
-		})),
-		avatar_url: getTeamAvatar(data.id)
+		}))
 	};
-}
-
-export function getTeamAvatar(teamId: string) {
-	return supabase.storage.from('avatars').getPublicUrl(`team/${teamId}.png`).data.publicUrl;
 }
 
 export async function uploadAvatar(userId: string, buffer: ArrayBuffer) {
@@ -84,9 +67,29 @@ export async function uploadAvatar(userId: string, buffer: ArrayBuffer) {
 		width: 256,
 		height: 256
 	}) as Response;
-	return supabase.storage.from('avatars').upload(`user/${userId}.png`, await image.arrayBuffer(), {
+
+	const path = `user/${userId}.png`;
+	return supabase.storage.from('avatars').upload(path, await image.arrayBuffer(), {
 		upsert: true,
 		contentType: 'image/png'
+	}).then(async response => {
+		if (!response.error) // is it actually required to await the transform builder?
+			await supabase.from('users').select('avatar_url').eq('id', userId).limit(1).single().then(async response => {
+				if (response.error)
+					return console.error(response.error);
+				let url = response.data.avatar_url;
+				const target = supabase.storage.from('avatars').getPublicUrl(path).data.publicUrl;
+				if (!url || !url.startsWith(target))
+					url = target;
+				else
+					url = `${target}?v=${Number(new URL(url).searchParams.get('v')) + 1}`;
+
+				await supabase.from('users').update({ avatar_url: url }).eq('id', userId).then(response => {
+					if (response.error)
+						return console.error(response.error);
+				});
+			});
+		return response;
 	});
 }
 
