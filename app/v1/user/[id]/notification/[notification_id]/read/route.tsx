@@ -1,8 +1,8 @@
-
 import handler from '../../../../../../../lib/handler';
 import { supabase } from '../../../../../../../lib/supabase';
 import { error, status } from '../../../../../../../lib/response';
 import { getRequestingUser } from '../../../../../../../lib/database';
+import { UserNotificationState } from '../../../../../../../lib/enums';
 
 export const runtime = 'edge';
 export const POST = handler(async request => {
@@ -11,7 +11,7 @@ export const POST = handler(async request => {
 		return error(401, 'unauthorised');
 
 	const response = await supabase.from('user_notifications').update({
-		state: 1
+		state: UserNotificationState.Read
 	}).eq('id', request.query.notification_id).eq('user_id', user.id);
 	if (response.error) {
 		console.error(response.error);

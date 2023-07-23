@@ -1,4 +1,4 @@
-import { AppReleaseChannel } from './enums';
+import { AppReleaseChannel } from '../enums';
 export async function getLatestRelease(repository: string, channel: string) {
 	const releases: GithubRelease[] = await fetch(`${API_BASE}/repos/${repository}/releases`, {
 		headers: {

@@ -32,3 +32,16 @@ export async function GET(request: Request) {
 	return json(response.data, 200, 300);
 }
 export const OPTIONS = () => status(200);
+export async function DELETE(request: Request) {
+	const user = await getRequestingUser(request.headers);
+	if (!user)
+		return error(401, 'unauthorised');
+
+	const response = await supabase.from('user_notifications').delete().eq('user_id', user.id);
+	if (response.error) {
+		console.error(response.error);
+		return error(500, 'database_error');
+	}
+
+	return status(200);
+}
