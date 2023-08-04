@@ -73,7 +73,7 @@ export async function uploadAvatar(userId: string, buffer: ArrayBuffer) {
 		upsert: true,
 		contentType: 'image/png'
 	}).then(async response => {
-		if (!response.error) // is it actually required to await the transform builder?
+		if (!response.error)
 			await supabase.from('users').select('avatar_url').eq('id', userId).limit(1).single().then(async response => {
 				if (response.error)
 					return console.error(response.error);
@@ -85,6 +85,37 @@ export async function uploadAvatar(userId: string, buffer: ArrayBuffer) {
 					url = `${target}?v=${Number(new URL(url).searchParams.get('v')) + 1}`;
 
 				await supabase.from('users').update({ avatar_url: url }).eq('id', userId).then(response => {
+					if (response.error)
+						return console.error(response.error);
+				});
+			});
+		return response;
+	});
+}
+
+export async function uploadTeamAvatar(teamId: string, buffer: ArrayBuffer) {
+	const image = new ImageResponse(<img src={buffer as any} width="256" height="256"/>, {
+		width: 256,
+		height: 256
+	}) as Response;
+
+	const path = `team/${teamId}.png`;
+	return supabase.storage.from('avatars').upload(path, await image.arrayBuffer(), {
+		upsert: true,
+		contentType: 'image/png'
+	}).then(async response => {
+		if (!response.error)
+			await supabase.from('teams').select('avatar_url').eq('id', teamId).limit(1).single().then(async response => {
+				if (response.error)
+					return console.error(response.error);
+				let url = response.data.avatar_url;
+				const target = supabase.storage.from('avatars').getPublicUrl(path).data.publicUrl;
+				if (!url || !url.startsWith(target))
+					url = target;
+				else
+					url = `${target}?v=${Number(new URL(url).searchParams.get('v')) + 1}`;
+
+				await supabase.from('teams').update({ avatar_url: url }).eq('id', teamId).then(response => {
 					if (response.error)
 						return console.error(response.error);
 				});
