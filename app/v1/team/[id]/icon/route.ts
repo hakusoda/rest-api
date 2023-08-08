@@ -1,29 +1,24 @@
-import { supabase } from '../../../../../lib/supabase';
+import handler from '../../../../../lib/handler';
 import { error, status } from '../../../../../lib/response';
+import { hasTeamPermissions } from '../../../../../lib/util';
+import { TeamRolePermission } from '../../../../../lib/enums';
 import { uploadTeamAvatar, getRequestingUser } from '../../../../../lib/database';
 
 export const runtime = 'edge';
-export async function PATCH(request: Request) {
-	const user = await getRequestingUser(request.headers);
+export const PATCH = handler(async ({ body, query, headers }) => {
+	const user = await getRequestingUser(headers);
 	if (!user)
 		return error(401, 'unauthorised');
 
-	const teamId = new URL(request.url).searchParams.get('id')!;
-	const response = await supabase.from('team_members').select('role').eq('user_id', user.id).eq('team_id', teamId).limit(1).maybeSingle();
+	if (!await hasTeamPermissions(query.id, user.id, [TeamRolePermission.ManageTeam]))
+		return error(403, 'no_permission');
+
+	const response = await uploadTeamAvatar(query.id, body);
 	if (response.error) {
 		console.error(response.error);
 		return error(500, 'database_error');
 	}
 
-	if (!response.data || response.data.role < 200)
-		return error(403, 'no_permission');
-
-	const response2 = await uploadTeamAvatar(teamId, await request.arrayBuffer());
-	if (response2.error) {
-		console.error(response2.error);
-		return error(500, 'database_error');
-	}
-
 	return status(200);
-}
+}, undefined, true);
 export const OPTIONS = () => status(200);

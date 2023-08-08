@@ -18,13 +18,20 @@ export const PATCH = handler(async ({ query, headers }) => {
 	if (!response.data.length)
 		return error(400, 'invalid_invite');
 
-	const response2 = await supabase.from('team_members').insert({
-		user_id: user.id,
-		team_id: query.id,
-		inviter_id: response.data[0].author_id
-	});
+	const response2 = await supabase.from('team_roles').select('id, position').eq('team_id', query.id);
 	if (response2.error) {
 		console.error(response2.error);
+		return error(500, 'database_error');
+	}
+
+	const response3 = await supabase.from('team_members').insert({
+		user_id: user.id,
+		team_id: query.id,
+		role_id: response2.data.find(role => role.position === 0)?.id,
+		inviter_id: response.data[0].author_id
+	});
+	if (response3.error) {
+		console.error(response3.error);
 		return error(500, 'database_error');
 	}
 	

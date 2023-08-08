@@ -1,11 +1,12 @@
 import { ImageResponse } from 'next/server';
 
+import { isUUID } from './util';
 import { supabase } from './supabase';
+import type { MellowServerAuditLogType } from './enums';
 import type { ApiUser, ApiTeam, RobloxLink, RobloxLinkType } from './types';
 
-const uuidPattern = /\w{8}-\w{4}-\w{4}-\w{4}-\w{12}/;
 export async function getUser(userId: string) {
-	const { data, error } = await supabase.from('users').select<string, ApiUser>('id, bio, name, flags, username, avatar_url, created_at').eq(uuidPattern.test(userId) ? 'id' : 'username', userId).limit(1).maybeSingle();
+	const { data, error } = await supabase.from('users').select<string, ApiUser>('id, bio, name, flags, username, avatar_url, created_at').eq(isUUID(userId) ? 'id' : 'username', userId).limit(1).maybeSingle();
 	if (error) {
 		console.error(error);
 		return null;
@@ -15,7 +16,7 @@ export async function getUser(userId: string) {
 }
 
 export async function getUserId(userId: string): Promise<string | null> {
-	if (uuidPattern.test(userId))
+	if (isUUID(userId))
 		return userId;
 
 	const { data, error } = await supabase.from('users').select('id').eq('username', userId);
@@ -43,7 +44,7 @@ export async function getUserRobloxLinks(userId: string, type?: RobloxLinkType):
 }
 
 export async function getTeam(teamId: string) {
-	const { data, error } = await supabase.from('teams').select<string, ApiTeam>('id, bio, name, flags, members:team_members ( role, user:users ( id, bio, name, flags, username, avatar_url, created_at ), joined_at ), avatar_url, created_at, display_name').eq(uuidPattern.test(teamId) ? 'id' : 'name', teamId).limit(1).maybeSingle();
+	const { data, error } = await supabase.from('teams').select<string, ApiTeam>('id, bio, name, flags, members:team_members ( role:team_roles ( id, name, position, permissions ), user:users!team_members_user_id_fkey\ ( id, bio, name, flags, username, avatar_url, created_at ), joined_at ), avatar_url, created_at, website_url, display_name').eq(isUUID(teamId) ? 'id' : 'name', teamId).limit(1).maybeSingle();
 	if (error) {
 		console.error(error);
 		return null;
@@ -136,4 +137,28 @@ export async function getRequestingUser(headers: Headers) {
 	}
 	
 	return user;
+}
+
+export async function isUserMemberOfMellowServer(userId: string, serverId: string) {
+	const response = await supabase.from('mellow_server_members').select('*', { head: true, count: 'exact' }).eq('user_id', userId).eq('server_id', serverId).limit(1).maybeSingle();
+	if (response.error) {
+		console.error(response.error);
+		return false;
+	}
+
+	if (!response.count)
+		return false;
+	return true;
+}
+
+export async function createMellowServerAuditLog(type: MellowServerAuditLogType, author_id: string, server_id: string, data?: any, target_link_id?: string) {
+	const { error } = await supabase.from('mellow_server_audit_logs').insert({
+		type,
+		data,
+		author_id,
+		server_id,
+		target_link_id
+	});
+	if (error)
+		console.error(error);
 }

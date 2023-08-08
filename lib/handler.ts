@@ -2,17 +2,19 @@ import type { NextRequest } from 'next/server';
 import type { ZodAny, ZodSchema } from 'zod';
 
 import { error } from './response';
-export type Handler<T extends ZodSchema = ZodAny> = (request: ApiRequest<T>) => Response | Promise<Response>
-export interface ApiRequest<T extends ZodSchema = ZodAny> {
-	body: T['_output']
+export type Handler<T extends ZodSchema = ZodAny, A extends boolean = false> = (request: ApiRequest<T, A>) => Response | Promise<Response>
+export interface ApiRequest<T extends ZodSchema = ZodAny, A extends boolean = false> {
+	body: A extends true ? ArrayBuffer : T['_output']
 	query: Record<string, string>
 	headers: Headers
 }
 
-export default function<T extends ZodSchema>(func: Handler<T>, bodySchema?: T) {
+export default function<T extends ZodSchema, A extends boolean = false>(func: Handler<T, A>, bodySchema?: T, bodyIsBuffer?: A) {
 	return async (request: NextRequest) => {
 		let body;
-		if (bodySchema) {
+		if (bodyIsBuffer)
+			body = await request.arrayBuffer();
+		else if (bodySchema) {
 			let data = {};
 			try { data = await request.json(); } catch(err) {}
 
