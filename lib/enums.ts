@@ -11,7 +11,8 @@ export enum UserNotificationState {
 export enum TeamRolePermission {
 	None,
 	ManageTeam = 1 << 0,
-	InviteUsers = 1 << 1
+	InviteUsers = 1 << 1,
+	ManageMembers = 1 << 2
 }
 
 export enum MellowRobloxLinkType {

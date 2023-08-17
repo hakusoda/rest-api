@@ -20,16 +20,14 @@ export const PATCH = handler(async ({ body, query, headers }) => {
 	if (!user)
 		return error(401, 'unauthorised');
 
-	if (!body.name && !body.display_name)
+	if (body.bio === undefined && !body.name && body.website_url === undefined && !body.display_name)
 		return error(400, 'invalid_body');
 	
 	if (!await hasTeamPermissions(query.id, user.id, [TeamRolePermission.ManageTeam]))
 		return error(403, 'no_permission');
 
-	const response = await supabase.from('teams').update({
-		name: body.name,
-		display_name: body.display_name
-	}).eq(isUUID(query.id) ? 'id' : 'name', query.id);
+	const response = await supabase.from('teams').update(body)
+		.eq(isUUID(query.id) ? 'id' : 'name', query.id);
 	if (response.error) {
 		console.error(response.error);
 		return error(500, 'database_error');
@@ -37,7 +35,9 @@ export const PATCH = handler(async ({ body, query, headers }) => {
 
 	return status(200);
 }, z.object({
+	bio: z.string().max(200).nullable().optional(),
 	name: z.string().min(3).max(20).regex(/^\w+$/).optional(),
+	website_url: z.string().url().max(50).nullable().optional(),
 	display_name: z.string().min(3).max(20).optional()
 }));
 export const OPTIONS = () => status(200);
