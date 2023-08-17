@@ -16,7 +16,7 @@ export const POST = handler(async ({ body, query, headers }) => {
 	if (!await hasTeamPermissions(query.id, user.id, [TeamRolePermission.InviteUsers]))
 		return error(403, 'no_permission');
 
-	const response = await supabase.from('team_invites').insert({
+	const response = await supabase.from('team_invites').upsert({
 		user_id: body.user_id,
 		team_id: query.id,
 		author_id: user.id
