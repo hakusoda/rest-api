@@ -27,6 +27,8 @@ export async function hasTeamPermissions(teamId: string, userId: string, permiss
 	if (!response.data.role)
 		return false;
 
+	if (hasBit(response.data.role.permissions, TeamRolePermission.Administrator))
+		return true;
 	for (const bit of permissions)
 		if (!hasBit(response.data.role.permissions, bit))
 			return false;
