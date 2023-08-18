@@ -3,9 +3,9 @@ import { z } from 'zod';
 import handler from '../../../../../lib/handler';
 import { supabase } from '../../../../../lib/supabase';
 import { error, status } from '../../../../../lib/response';
-import { getRequestingUser } from '../../../../../lib/database';
 import { hasTeamPermissions } from '../../../../../lib/util';
-import { TeamRolePermission } from '../../../../../lib/enums';
+import { TeamAuditLogType, TeamRolePermission } from '../../../../../lib/enums';
+import { getRequestingUser, createTeamAuditLog } from '../../../../../lib/database';
 
 export const runtime = 'edge';
 export const POST = handler(async ({ body, query, headers }) => {
@@ -17,14 +17,16 @@ export const POST = handler(async ({ body, query, headers }) => {
 		return error(403, 'no_permission');
 
 	const response = await supabase.from('team_invites').upsert({
-		user_id: body.user_id,
 		team_id: query.id,
+		user_id: body.user_id,
 		author_id: user.id
 	});
 	if (response.error) {
 		console.error(response.error);
 		return error(500, 'database_error');
 	}
+
+	await createTeamAuditLog(TeamAuditLogType.InviteUser, user.id, query.id, undefined, undefined, body.user_id);
 	
 	return status(200);
 }, z.object({

@@ -2,7 +2,7 @@ import { ImageResponse } from 'next/server';
 
 import { isUUID } from './util';
 import { supabase } from './supabase';
-import type { MellowServerAuditLogType } from './enums';
+import type { TeamAuditLogType, MellowServerAuditLogType } from './enums';
 import type { ApiUser, ApiTeam, RobloxLink, RobloxLinkType } from './types';
 
 export async function getUser(userId: string) {
@@ -149,6 +149,19 @@ export async function isUserMemberOfMellowServer(userId: string, serverId: strin
 	if (!response.count)
 		return false;
 	return true;
+}
+
+export async function createTeamAuditLog(type: TeamAuditLogType, author_id: string, team_id: string, data?: any, target_role_id?: string, target_user_id?: string) {
+	const { error } = await supabase.from('team_audit_logs').insert({
+		type,
+		data,
+		team_id,
+		author_id,
+		target_role_id,
+		target_user_id
+	});
+	if (error)
+		console.error(error);
 }
 
 export async function createMellowServerAuditLog(type: MellowServerAuditLogType, author_id: string, server_id: string, data?: any, target_link_id?: string) {

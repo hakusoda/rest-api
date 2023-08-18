@@ -2,8 +2,8 @@ import { z } from 'zod';
 
 import handler from '../../../lib/handler';
 import { supabase } from '../../../lib/supabase';
-import { getRequestingUser } from '../../../lib/database';
-import { TeamRolePermission } from '../../../lib/enums';
+import { getRequestingUser, createTeamAuditLog } from '../../../lib/database';
+import { TeamAuditLogType, TeamRolePermission } from '../../../lib/enums';
 import { json, error, status } from '../../../lib/response';
 
 export const runtime = 'edge';
@@ -12,8 +12,9 @@ export const POST = handler(async ({ body, headers }) => {
 	if (!user)
 		return error(401, 'unauthorised');
 
+	const name = body.display_name.toLowerCase().replace(/ /g, '_').replace(/\W/g, '');
 	const response = await supabase.from('teams').insert({
-		name: body.display_name.toLowerCase().replace(/ /g, '_').replace(/\W/g, ''),
+		name,
 		owner_id: user.id,
 		creator_id: user.id,
 		display_name: body.display_name
@@ -35,12 +36,12 @@ export const POST = handler(async ({ body, headers }) => {
 		name: 'Administrator',
 		team_id: response.data.id,
 		position: 1,
-		permissions: TeamRolePermission.ManageTeam + TeamRolePermission.InviteUsers
+		permissions: TeamRolePermission.ManageTeam + TeamRolePermission.ManageMembers + TeamRolePermission.InviteUsers
 	}, {
 		name: 'Owner',
 		team_id: response.data.id,
 		position: 2,
-		permissions: 0
+		permissions: TeamRolePermission.Administrator
 	}]).select('id');
 	if (response2.error) {
 		console.error(response2.error);
@@ -57,6 +58,11 @@ export const POST = handler(async ({ body, headers }) => {
 		return error(500, 'database_error');
 	}
 	
+	await createTeamAuditLog(TeamAuditLogType.CreateTeam, user.id, response.data.id, {
+		name,
+		display_name: body.display_name
+	});
+
 	return json(response.data);
 }, z.object({
 	display_name: z.string().min(3).max(20)

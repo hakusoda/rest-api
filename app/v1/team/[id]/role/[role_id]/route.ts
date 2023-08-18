@@ -4,8 +4,8 @@ import handler from '../../../../../../lib/handler';
 import { hasBit } from '../../../../../../lib/util';
 import { supabase } from '../../../../../../lib/supabase';
 import { error, status } from '../../../../../../lib/response';
-import { getRequestingUser } from '../../../../../../lib/database';
-import { TeamRolePermission } from '../../../../../../lib/enums';
+import { TeamAuditLogType, TeamRolePermission } from '../../../../../../lib/enums';
+import { getRequestingUser, createTeamAuditLog } from '../../../../../../lib/database';
 
 export const runtime = 'edge';
 export const PATCH = handler(async ({ body, query, headers }) => {
@@ -25,7 +25,7 @@ export const PATCH = handler(async ({ body, query, headers }) => {
 	if (user.id !== member.team.owner_id && (!member.role || !hasBit(member.role.permissions, TeamRolePermission.ManageRoles)))
 		return error(403, 'no_permission');
 
-	const response = await supabase.from('team_roles').select('position')
+	const response = await supabase.from('team_roles').select('name, position, permissions')
 		.eq('id', query.role_id)
 		.eq('team_id', query.id)
 		.limit(1)
@@ -48,6 +48,12 @@ export const PATCH = handler(async ({ body, query, headers }) => {
 		console.error(response2.error);
 		return error(500, 'database_error');
 	}
+
+	await createTeamAuditLog(TeamAuditLogType.UpdateRole, user.id, query.id, {
+		name: [response.data.name, body.name],
+		position: [response.data.position, body.position],
+		permissions: [response.data.permissions, body.permissions]
+	});
 
 	return status(200);
 }, z.object({
