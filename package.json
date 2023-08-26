@@ -1,28 +1,24 @@
 {
 	"name": "voxelified-api",
+	"type": "module",
 	"version": "1.3.0",
 	"license": "MIT",
 	"scripts": {
-		"dev": "next dev",
-		"pull": "vercel pull",
-		"start": "next start",
-		"build": "next build",
+		"dev": "vite dev --port 5174",
 		"deploy": "vercel deploy --prod",
-		"deploy:preview": "vercel deploy"
+		"deploy:preview": "vercel deploy",
+		"prepare": "svelte-kit sync"
 	},
 	"devDependencies": {
-		"@types/react": "^18.2.12",
-		"@types/react-dom": "^18.2.5",
-		"turbo": "^1.10.3",
-		"typescript": "^5.1.3"
+		"@sveltejs/adapter-vercel": "^3.0.3",
+		"@sveltejs/kit": "^1.23.0",
+		"svelte": "^4.2.0",
+		"typescript": "^5.2.2",
+		"vite": "^4.4.9"
 	},
 	"dependencies": {
-		"@supabase/supabase-js": "^2.25.0",
-		"@types/node": "^20.3.1",
-		"@vercel/og": "^0.5.7",
-		"next": "^13.4.5",
-		"react": "^18.2.0",
-		"react-dom": "^18.2.0",
-		"zod": "^3.21.4"
+		"@napi-rs/canvas": "^0.1.44",
+		"@supabase/supabase-js": "^2.33.1",
+		"zod": "^3.22.2"
 	}
 }

@@ -1,4 +1,6 @@
-.next
 .vercel
 .env.local
+.svelte-kit
 node_modules
+avatar-processor
+yarn-error.*
