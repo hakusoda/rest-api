@@ -20,4 +20,3 @@ export const POST = (async ({ locals: { getUser }, params: { post_id }, request 
 
 	return json(response.data);
 }) satisfies RequestHandler;
-export const OPTIONS = () => new Response();

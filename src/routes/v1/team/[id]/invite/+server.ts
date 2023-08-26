@@ -26,4 +26,3 @@ export const POST = (async ({ locals: { getUser }, params: { id }, request }) =>
 
 	return new Response();
 }) satisfies RequestHandler;
-export const OPTIONS = () => new Response();

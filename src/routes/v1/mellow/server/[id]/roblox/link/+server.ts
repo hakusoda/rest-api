@@ -104,4 +104,3 @@ export const POST = (async ({ locals: { getUser }, params: { id }, request }) =>
 		requirements
 	});
 }) satisfies RequestHandler;
-export const OPTIONS = () => new Response();

@@ -21,4 +21,3 @@ export const DELETE = (async ({ locals: { getUser }, params: { id, link_id } }) 
 
 	return new Response();
 }) satisfies RequestHandler;
-export const OPTIONS = () => new Response();

@@ -24,4 +24,3 @@ export const GET = (async ({ params: { id } }) => {
 		}))
 	});
 }) satisfies RequestHandler;
-export const OPTIONS = () => new Response();

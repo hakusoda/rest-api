@@ -2,6 +2,7 @@ import { error } from '$lib/response';
 import { processAvatarImage } from '$lib/image';
 import type { RequestHandler } from './$types';
 import supabase, { handleResponse } from '$lib/supabase';
+export const config = { runtime: 'nodejs18.x' };
 export const PATCH = (async ({ locals: { getUser }, params: { id }, request }) => {
 	const user = await getUser();
 	if (user.id !== id)
@@ -39,4 +40,3 @@ export const PATCH = (async ({ locals: { getUser }, params: { id }, request }) =
 
 	return new Response();
 }) satisfies RequestHandler;
-export const OPTIONS = () => new Response();

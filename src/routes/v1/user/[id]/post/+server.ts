@@ -42,4 +42,3 @@ export const POST = (async ({ locals: { getUser }, params: { id }, request }) =>
 		attachments: attachments ?? []
 	});
 }) satisfies RequestHandler;
-export const OPTIONS = () => new Response();

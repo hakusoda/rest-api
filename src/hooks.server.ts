@@ -3,11 +3,20 @@ import { createClient } from '@supabase/supabase-js';
 
 import supabase from '$lib/supabase';
 import { error } from '$lib/response';
-import { PUBLIC_SUPABASE_URL } from '$env/static/public';
-import { SUPABASE_SERVICE_ROLE } from '$env/static/private';
+import { NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } from '$env/static/private';
 
 const COOKIE_NAME = 'sb-gzlrrsjtbzflasxukxki-auth-token';
 export const handle = (async ({ event, resolve }) => {
+	if (event.request.method === 'OPTIONS')
+		return new Response(null, {
+			headers: {
+				'Access-Control-Allow-Origin': '*',
+				'Access-Control-Allow-Headers': '*',
+				'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS'
+			}
+		});
+	event.setHeaders({ 'Access-Control-Allow-Origin': '*' });
+
 	event.locals.getUser = async (required: boolean = true) => {
 		const cookie = event.cookies.get(COOKIE_NAME);
 		
@@ -21,7 +30,7 @@ export const handle = (async ({ event, resolve }) => {
 		if (cookie) {
 			const refresh_token = cookie.match(/,"(.*?)"/)?.[1];
 			if (refresh_token) {
-				const client = createClient(PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE, {
+				const client = createClient(NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
 					auth: {
 						persistSession: false,
 						autoRefreshToken: false

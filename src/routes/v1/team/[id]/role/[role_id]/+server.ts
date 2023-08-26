@@ -46,7 +46,7 @@ export const PATCH = (async ({ locals: { getUser }, params: { id, role_id }, req
 
 	return new Response();
 }) satisfies RequestHandler;
-export const OPTIONS = () => new Response();
+
 
 async function getMember(teamId: string, userId: string) {
 	const response = await supabase.from('team_members')

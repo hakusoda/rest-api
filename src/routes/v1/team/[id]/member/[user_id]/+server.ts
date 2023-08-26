@@ -50,4 +50,3 @@ export const PATCH = (async ({ locals: { getUser }, params: { id, user_id }, req
 
 	return new Response();
 }) satisfies RequestHandler;
-export const OPTIONS = () => new Response();

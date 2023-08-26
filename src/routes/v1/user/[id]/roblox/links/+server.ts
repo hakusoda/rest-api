@@ -27,4 +27,3 @@ export const GET = (async ({ url, locals: { getUser }, params: { id } }) => {
 
 	return json(response.data!);
 }) satisfies RequestHandler;
-export const OPTIONS = () => new Response();
