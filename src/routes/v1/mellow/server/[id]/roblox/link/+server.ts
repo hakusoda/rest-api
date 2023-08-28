@@ -11,7 +11,7 @@ import { MellowRobloxLinkType, MellowServerAuditLogType, MellowRobloxLinkRequire
 const POST_PAYLOAD = z.object({
 	name: z.string().max(50),
 	type: z.nativeEnum(MellowRobloxLinkType),
-	target_ids: z.array(z.string().max(100)).min(1).max(100),
+	data: z.array(z.string().max(100)).max(20),
 	requirements: z.array(z.object({
 		data: z.array(z.string().max(100)).max(5),
 		type: z.nativeEnum(MellowRobloxLinkRequirementType)
@@ -69,12 +69,12 @@ export const POST = (async ({ locals: { getUser }, params: { id }, request }) =>
 		.insert({
 			name: body.name,
 			type: body.type,
+			data: body.data,
 			server_id: id,
 			creator_id: user.id,
-			target_ids: body.target_ids,
 			requirements_type: body.requirements_type
 		})
-		.select('id, name, type, creator:users ( name, username ), created_at, target_ids, requirements_type')
+		.select('id, name, type, data, creator:users ( name, username ), created_at, requirements_type')
 		.limit(1)
 		.single();
 	handleResponse(response);
@@ -94,7 +94,7 @@ export const POST = (async ({ locals: { getUser }, params: { id }, request }) =>
 	await createMellowServerAuditLog(MellowServerAuditLogType.CreateRobloxLink, user.id, id, {
 		name: body.name,
 		type: body.type,
-		targets: body.target_ids.length,
+		data: body.data,
 		requirements: body.requirements.length,
 		requirements_type: body.requirements_type
 	}, response.data!.id);

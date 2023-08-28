@@ -33,7 +33,9 @@ export enum TeamRolePermission {
 }
 
 export enum MellowRobloxLinkType {
-	DiscordRoles
+	DiscordRoles,
+	BanDiscord,
+	KickDiscord
 }
 export enum MellowRobloxLinkRequirementType {
 	HasVerifiedUserLink,
