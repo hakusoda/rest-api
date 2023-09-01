@@ -68,8 +68,5 @@ export const PATCH = (async ({ locals: { getUser }, params: { id }, request }) =
 		.eq(isUUID(id) ? 'id' : 'name', id);
 	handleResponse(response);
 
-	if (!response.data)
-		throw error(404, 'not_found');
-
 	return new Response();
 }) satisfies RequestHandler;
