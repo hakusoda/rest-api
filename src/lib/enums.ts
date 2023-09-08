@@ -32,20 +32,23 @@ export enum TeamRolePermission {
 	Administrator = 1 << 4
 }
 
-export enum MellowRobloxLinkType {
+export enum MellowProfileSyncActionType {
 	DiscordRoles,
 	BanDiscord,
-	KickDiscord
+	KickDiscord,
+	CancelSync
 }
-export enum MellowRobloxLinkRequirementType {
-	HasVerifiedUserLink,
-	HasRobloxGroupRole,
-	HasRobloxGroupRankInRange,
-	InRobloxGroup,
-	IsFriendsWith,
-	MeetsOtherLink
+export enum MellowProfileSyncActionRequirementType {
+	RobloxHasVerifiedAccount,
+	RobloxHasGroupRole,
+	RobloxHasGroupRankInRange,
+	RobloxInGroup,
+	RobloxIsFriendsWith,
+	MeetOtherAction,
+	VoxelifiedInTeam,
+	SteamInGroup
 }
-export enum MellowRobloxLinkRequirementsType {
+export enum MellowProfileSyncActionRequirementsType {
 	MeetAll,
 	MeetOne
 }

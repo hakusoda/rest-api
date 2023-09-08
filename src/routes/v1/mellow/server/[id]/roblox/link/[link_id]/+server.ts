@@ -1,8 +1,90 @@
+import { json } from '@sveltejs/kit';
+
 import { error } from '$lib/response';
 import type { RequestHandler } from './$types';
 import { MellowServerAuditLogType } from '$lib/enums';
 import supabase, { handleResponse } from '$lib/supabase';
-import { createMellowServerAuditLog, isUserMemberOfMellowServer } from '$lib/util';
+import { MELLOW_SERVER_PROFILE_SYNC_ACTION_PAYLOAD } from '$lib/constants';
+import { parseBody, createMellowServerAuditLog, isUserMemberOfMellowServer } from '$lib/util';
+export const PATCH = (async ({ locals: { getUser }, params: { id, link_id }, request }) => {
+	const user = await getUser();
+	if (!await isUserMemberOfMellowServer(user.id, id))
+		throw error(403, 'no_permission');
+
+	const body = await parseBody(request, MELLOW_SERVER_PROFILE_SYNC_ACTION_PAYLOAD.partial());
+	const response = await supabase.from('mellow_binds')
+		.select('id, name, type, data, creator:users ( name, username ), created_at, requirements:mellow_bind_requirements ( id, type, data ), requirements_type')
+		.eq('id', link_id)
+		.eq('server_id', id)
+		.limit(1)
+		.single();
+	handleResponse(response);
+
+	const author = await supabase.from('users')
+		.select('name, username')
+		.eq('id', user.id)
+		.limit(1)
+		.single();
+	handleResponse(author);
+
+	let final = {
+		...response.data!,
+		last_edit: {
+			type: MellowServerAuditLogType.UpdateRobloxLink,
+			author: author.data!,
+			created_at: Date.now()
+		}
+	};
+	if (body.name !== undefined || body.type !== undefined || body.data !== undefined || body.requirements_type !== undefined) {
+		const response2 = await supabase.from('mellow_binds')
+			.update({
+				name: body.name,
+				type: body.type,
+				data: body.data,
+				requirements_type: body.requirements_type
+			})
+			.eq('id', link_id)
+			.eq('server_id', id)
+			.select('id, name, type, data, creator:users ( name, username ), created_at, requirements_type')
+			.single();
+		handleResponse(response2);
+
+		final = {
+			...final,
+			...response2.data
+		};
+	}
+
+	if (body.requirements) {
+		const response3 = await supabase.from('mellow_bind_requirements')
+			.delete()
+			.eq('bind_id', link_id);
+		handleResponse(response3);
+
+		if (body.requirements.length) {
+			const response4 = await supabase.from('mellow_bind_requirements')
+				.insert(body.requirements.map(item => ({
+					...item,
+					bind_id: link_id
+				})))
+				.select('id, type, data');
+			handleResponse(response4);
+
+			final.requirements = response4.data!;
+		} else
+			final.requirements = [];
+	}
+
+	await createMellowServerAuditLog(MellowServerAuditLogType.UpdateRobloxLink, user.id, id, {
+		name: [response.data!.name, body.name],
+		type: [response.data!.type, body.type],
+		data: [response.data!.data, body.data],
+		requirements: [response.data!.requirements, body.requirements],
+		requirements_type: [response.data!.requirements_type, body.requirements_type]
+	}, link_id);
+
+	return json(final);
+}) satisfies RequestHandler;
 export const DELETE = (async ({ locals: { getUser }, params: { id, link_id } }) => {
 	const user = await getUser();
 	if (!await isUserMemberOfMellowServer(user.id, id))

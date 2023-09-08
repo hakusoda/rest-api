@@ -1,23 +1,12 @@
-import { z } from 'zod';
 import { json } from '@sveltejs/kit';
 import type { ZodIssue } from 'zod';
 
 import { error } from '$lib/response';
 import type { RequestHandler } from './$types';
 import supabase, { handleResponse } from '$lib/supabase';
+import { MELLOW_SERVER_PROFILE_SYNC_ACTION_PAYLOAD } from '$lib/constants';
+import { MellowServerAuditLogType, MellowProfileSyncActionRequirementType } from '$lib/enums';
 import { parseBody, createMellowServerAuditLog, isUserMemberOfMellowServer } from '$lib/util';
-import { MellowRobloxLinkType, MellowServerAuditLogType, MellowRobloxLinkRequirementType, MellowRobloxLinkRequirementsType } from '$lib/enums';
-
-const POST_PAYLOAD = z.object({
-	name: z.string().max(50),
-	type: z.nativeEnum(MellowRobloxLinkType),
-	data: z.array(z.string().max(100)).max(20),
-	requirements: z.array(z.object({
-		data: z.array(z.string().max(100)).max(5),
-		type: z.nativeEnum(MellowRobloxLinkRequirementType)
-	})),
-	requirements_type: z.nativeEnum(MellowRobloxLinkRequirementsType)
-});
 export const POST = (async ({ locals: { getUser }, params: { id }, request }) => {
 	const user = await getUser();
 	if (isNaN(parseInt(id)))
@@ -26,10 +15,10 @@ export const POST = (async ({ locals: { getUser }, params: { id }, request }) =>
 	if (!await isUserMemberOfMellowServer(user.id, id))
 		throw error(403, 'no_permission');
 
-	const body = await parseBody(request, POST_PAYLOAD);
+	const body = await parseBody(request, MELLOW_SERVER_PROFILE_SYNC_ACTION_PAYLOAD);
 	const issues: ZodIssue[] = [];
 	for (const [index, { type, data: rData }] of Object.entries(body.requirements)) {
-		if (type === MellowRobloxLinkRequirementType.HasRobloxGroupRole || type === MellowRobloxLinkRequirementType.HasRobloxGroupRankInRange) {
+		if (type === MellowProfileSyncActionRequirementType.HasRobloxGroupRole || type === MellowProfileSyncActionRequirementType.HasRobloxGroupRankInRange) {
 			if (!isFinite(+rData[0]))
 				issues.push({
 					code: 'custom',
@@ -38,14 +27,14 @@ export const POST = (async ({ locals: { getUser }, params: { id }, request }) =>
 				});
 		}
 
-		if (type === MellowRobloxLinkRequirementType.HasRobloxGroupRole) {
+		if (type === MellowProfileSyncActionRequirementType.HasRobloxGroupRole) {
 			if (!isFinite(+rData[1]))
 				issues.push({
 					code: 'custom',
 					path: ['requirements', index, 'data', 1],
 					message: ''
 				});
-		} else if (type === MellowRobloxLinkRequirementType.HasRobloxGroupRankInRange) {
+		} else if (type === MellowProfileSyncActionRequirementType.HasRobloxGroupRankInRange) {
 			const [_, min, max] = rData;
 			if (!min || !isFinite(+min) || +min <= 0)
 				issues.push({
