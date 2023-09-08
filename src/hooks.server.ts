@@ -15,7 +15,6 @@ export const handle = (async ({ event, resolve }) => {
 				'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS'
 			}
 		});
-	event.setHeaders({ 'Access-Control-Allow-Origin': '*' });
 
 	event.locals.getUser = async (required: boolean = true) => {
 		const cookie = event.cookies.get(COOKIE_NAME);
@@ -69,7 +68,10 @@ export const handle = (async ({ event, resolve }) => {
 		return response.data.user;
 	};
 	
-	return resolve(event, {
+	const response = await resolve(event, {
 		filterSerializedResponseHeaders: name => name === 'content-range'
 	});
+	response.headers.append('Access-Control-Allow-Origin', '*');
+
+	return response;
 }) satisfies Handle;
