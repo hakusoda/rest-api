@@ -7,7 +7,8 @@
 		"dev": "vite dev --port 5174",
 		"deploy": "vercel deploy --prod",
 		"deploy:preview": "vercel deploy",
-		"prepare": "svelte-kit sync"
+		"prepare": "svelte-kit sync",
+		"pull-env": "vercel env pull .env.local"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-vercel": "^3.0.3",
@@ -23,6 +24,7 @@
 		"@peculiar/asn1-ecc": "^2.3.6",
 		"@peculiar/asn1-schema": "^2.3.6",
 		"@supabase/supabase-js": "^2.33.1",
+		"@vercel/edge-config": "^0.4.0",
 		"@vercel/kv": "^0.2.2",
 		"cbor-x": "^1.5.4",
 		"jose": "^4.14.6",

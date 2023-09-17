@@ -1,14 +1,17 @@
 import { z } from 'zod';
 import { json } from '@sveltejs/kit';
 
-import { parseBody } from '$lib/util';
+import { ApiFeatureFlag } from '$lib/enums';
 import type { RequestHandler } from './$types';
 import supabase, { handleResponse } from '$lib/supabase';
+import { parseBody, throwIfFeatureNotEnabled } from '$lib/util';
 
 const POST_PAYLOAD = z.object({
 	content: z.string().min(1).max(500)
 });
 export const POST = (async ({ locals: { getSession }, params: { post_id }, request }) => {
+	await throwIfFeatureNotEnabled(ApiFeatureFlag.ProfilePostCreation);
+	
 	const session = await getSession();
 	const body = await parseBody(request, POST_PAYLOAD);
 	const response = await supabase.from('profile_posts')

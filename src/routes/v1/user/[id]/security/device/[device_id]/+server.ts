@@ -1,7 +1,11 @@
 import { error } from '$lib/response';
+import { ApiFeatureFlag } from '$lib/enums';
 import type { RequestHandler } from './$types';
+import { throwIfFeatureNotEnabled } from '$lib/util';
 import supabase, { handleResponse } from '$lib/supabase';
 export const DELETE = (async ({ locals: { getSession }, params: { id, device_id } }) => {
+	await throwIfFeatureNotEnabled(ApiFeatureFlag.SecurityKeys);
+
 	const session = await getSession();
 	if (session.sub !== id)
 		throw error(403, 'forbidden');

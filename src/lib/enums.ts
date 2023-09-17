@@ -1,3 +1,14 @@
+export enum ApiFeatureFlag {
+	None,
+	ProfilePostLikes = 1 << 0,
+	ProfilePostCreation = 1 << 1,
+	TeamCreation = 1 << 2,
+	SignIn = 1 << 3,
+	SignUp = 1 << 4,
+	ThirdPartySignUp = 1 << 5,
+	SecurityKeys = 1 << 6
+}
+
 export enum UserNotificationState {
 	Unread,
 	Read

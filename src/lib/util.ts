@@ -1,4 +1,5 @@
 import base64 from '@hexagon/base64';
+import { get } from '@vercel/edge-config';
 import { UAParser } from 'ua-parser-js';
 import { AsnParser } from '@peculiar/asn1-schema';
 import { ECDSASigValue } from '@peculiar/asn1-ecc';
@@ -8,6 +9,7 @@ import { decode, encode, decodeMultiple } from 'cbor-x';
 import { error } from './response';
 import { UUID_REGEX } from './constants';
 import { TeamRolePermission } from './enums';
+import type { ApiFeatureFlag } from './enums';
 import supabase, { handleResponse } from './supabase';
 import { COSECRV, COSEKEYS, mapCoseAlgToCryptoAlg } from './cose';
 import type { TeamAuditLogType, MellowServerAuditLogType } from './enums';
@@ -259,4 +261,14 @@ export function getRequestOrigin(request: Request, platformVersion = '10.0.0') {
 		user_country: request.headers.get('cf-ipcountry') || request.headers.get('x-vercel-ip-country'),
 		user_platform: BROWSER_NAME_MAP[user_platform!] ?? user_platform
 	};
+}
+
+export function isFeatureEnabled(feature: ApiFeatureFlag) {
+	return get<number>('api_feature_flags').then(value => value !== undefined ? hasBit(value, feature) : false);
+}
+
+export async function throwIfFeatureNotEnabled(feature: ApiFeatureFlag) {
+	const enabled = await isFeatureEnabled(feature);
+	if (!enabled)
+		throw error(503, 'feature_disabled');
 }
