@@ -3,8 +3,8 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import type { UserRobloxLinkType } from '$lib/enums';
 import supabase, { handleResponse } from '$lib/supabase';
-export const GET = (async ({ url, locals: { getUser }, params: { id } }) => {
-	const user = await getUser(false);
+export const GET = (async ({ url, locals: { getSession }, params: { id } }) => {
+	const session = await getSession(false);
 	const builder = supabase.from('roblox_links')
 		.select<string, {
 			id: string

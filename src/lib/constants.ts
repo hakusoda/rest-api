@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { dev } from '$app/environment';
+import { JWT_SECRET as _JWT_SECRET } from '$env/static/private';
 import { MellowProfileSyncActionType, MellowProfileSyncActionRequirementType, MellowProfileSyncActionRequirementsType } from '$lib/enums';
 export const UUID_REGEX = /^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$/;
 export const USERNAME_REGEX = /^[\w-]+$/;
@@ -15,3 +17,10 @@ export const MELLOW_SERVER_PROFILE_SYNC_ACTION_PAYLOAD = z.object({
 	})).max(25),
 	requirements_type: z.nativeEnum(MellowProfileSyncActionRequirementsType)
 });
+
+export const RELYING_PARTY_ID = dev ? 'website-dev-tunnel.voxelified.com' : 'voxelified.com';
+
+export const JWT_SECRET = new TextEncoder().encode(_JWT_SECRET);
+
+export const API_URL = dev ? 'https://api-dev-tunnel.voxelified.com' : 'https://api.voxelified.com';
+export const WEBSITE_URL = `https://${RELYING_PARTY_ID}`;

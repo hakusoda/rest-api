@@ -9,20 +9,20 @@ import { parseBody, createTeamAuditLog, hasTeamPermissions } from '$lib/util';
 const POST_PAYLOAD = z.object({
 	user_id: z.string().uuid()
 });
-export const POST = (async ({ locals: { getUser }, params: { id }, request }) => {
-	const user = await getUser();
-	if (!await hasTeamPermissions(id, user.id, [TeamRolePermission.InviteUsers]))
+export const POST = (async ({ locals: { getSession }, params: { id }, request }) => {
+	const session = await getSession();
+	if (!await hasTeamPermissions(id, session.sub, [TeamRolePermission.InviteUsers]))
 		throw error(403, 'no_permission');
 
 	const body = await parseBody(request, POST_PAYLOAD);
 	const response = await supabase.from('team_invites').upsert({
 		team_id: id,
-		user_id: user.id,
-		author_id: user.id
+		user_id: session.sub,
+		author_id: session.sub
 	});
 	handleResponse(response);
 
-	await createTeamAuditLog(TeamAuditLogType.InviteUser, user.id, id, undefined, undefined, body.user_id);
+	await createTeamAuditLog(TeamAuditLogType.InviteUser, session.sub, id, undefined, undefined, body.user_id);
 
 	return new Response();
 }) satisfies RequestHandler;

@@ -6,9 +6,9 @@ import { MellowServerAuditLogType } from '$lib/enums';
 import supabase, { handleResponse } from '$lib/supabase';
 import { MELLOW_SERVER_PROFILE_SYNC_ACTION_PAYLOAD } from '$lib/constants';
 import { parseBody, createMellowServerAuditLog, isUserMemberOfMellowServer } from '$lib/util';
-export const PATCH = (async ({ locals: { getUser }, params: { id, link_id }, request }) => {
-	const user = await getUser();
-	if (!await isUserMemberOfMellowServer(user.id, id))
+export const PATCH = (async ({ locals: { getSession }, params: { id, link_id }, request }) => {
+	const session = await getSession();
+	if (!await isUserMemberOfMellowServer(session.sub, id))
 		throw error(403, 'no_permission');
 
 	const body = await parseBody(request, MELLOW_SERVER_PROFILE_SYNC_ACTION_PAYLOAD.partial());
@@ -22,7 +22,7 @@ export const PATCH = (async ({ locals: { getUser }, params: { id, link_id }, req
 
 	const author = await supabase.from('users')
 		.select('name, username')
-		.eq('id', user.id)
+		.eq('id', session.sub)
 		.limit(1)
 		.single();
 	handleResponse(author);
@@ -75,7 +75,7 @@ export const PATCH = (async ({ locals: { getUser }, params: { id, link_id }, req
 			final.requirements = [];
 	}
 
-	await createMellowServerAuditLog(MellowServerAuditLogType.UpdateRobloxLink, user.id, id, {
+	await createMellowServerAuditLog(MellowServerAuditLogType.UpdateRobloxLink, session.sub, id, {
 		name: [response.data!.name, body.name],
 		type: [response.data!.type, body.type],
 		data: [response.data!.data, body.data],
@@ -85,9 +85,9 @@ export const PATCH = (async ({ locals: { getUser }, params: { id, link_id }, req
 
 	return json(final);
 }) satisfies RequestHandler;
-export const DELETE = (async ({ locals: { getUser }, params: { id, link_id } }) => {
-	const user = await getUser();
-	if (!await isUserMemberOfMellowServer(user.id, id))
+export const DELETE = (async ({ locals: { getSession }, params: { id, link_id } }) => {
+	const session = await getSession();
+	if (!await isUserMemberOfMellowServer(session.sub, id))
 		throw error(403, 'no_permission');
 
 	const response = await supabase.from('mellow_binds')
@@ -97,7 +97,7 @@ export const DELETE = (async ({ locals: { getUser }, params: { id, link_id } }) 
 		.select('name');
 	handleResponse(response);
 
-	await createMellowServerAuditLog(MellowServerAuditLogType.DeleteRobloxLink, user.id, id, {
+	await createMellowServerAuditLog(MellowServerAuditLogType.DeleteRobloxLink, session.sub, id, {
 		name: response.data![0].name
 	});
 

@@ -6,13 +6,13 @@ import supabase, { handleResponse } from '$lib/supabase';
 import { TeamAuditLogType, TeamRolePermission } from '$lib/enums';
 import { hasBit, parseBody, createTeamAuditLog } from '$lib/util';
 
-export const POST = (async ({ locals: { getUser }, params: { id, invite_id } }) => {
-	const user = await getUser();
+export const POST = (async ({ locals: { getSession }, params: { id, invite_id } }) => {
+	const session = await getSession();
 	const response = await supabase.from('team_invites')
 		.delete()
 		.eq('id', invite_id)
 		.eq('team_id', id)
-		.eq('user_id', user.id)
+		.eq('user_id', session.sub)
 		.select('author_id');
 	handleResponse(response);
 
@@ -24,7 +24,7 @@ export const POST = (async ({ locals: { getUser }, params: { id, invite_id } }) 
 
 	const response3 = await supabase.from('team_members').insert({
 		team_id: id,
-		user_id: user.id,
+		user_id: session.sub,
 		role_id: response2.data!.find(role => role.position === 0)?.id,
 		inviter_id: response.data![0].author_id
 	});
@@ -32,13 +32,13 @@ export const POST = (async ({ locals: { getUser }, params: { id, invite_id } }) 
 
 	return new Response();
 }) satisfies RequestHandler;
-export const DELETE = (async ({ locals: { getUser }, params: { id, invite_id } }) => {
-	const user = await getUser();
+export const DELETE = (async ({ locals: { getSession }, params: { id, invite_id } }) => {
+	const session = await getSession();
 	const response = await supabase.from('team_invites')
 		.delete()
 		.eq('id', invite_id)
 		.eq('team_id', id)
-		.eq('user_id', user.id);
+		.eq('user_id', session.sub);
 	handleResponse(response);
 
 	return new Response();

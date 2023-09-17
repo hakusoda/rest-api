@@ -7,12 +7,12 @@ import supabase, { handleResponse } from '$lib/supabase';
 import { MELLOW_SERVER_PROFILE_SYNC_ACTION_PAYLOAD } from '$lib/constants';
 import { MellowServerAuditLogType, MellowProfileSyncActionRequirementType } from '$lib/enums';
 import { parseBody, createMellowServerAuditLog, isUserMemberOfMellowServer } from '$lib/util';
-export const POST = (async ({ locals: { getUser }, params: { id }, request }) => {
-	const user = await getUser();
+export const POST = (async ({ locals: { getSession }, params: { id }, request }) => {
+	const session = await getSession();
 	if (isNaN(parseInt(id)))
 		throw error(400, 'invalid_id');
 
-	if (!await isUserMemberOfMellowServer(user.id, id))
+	if (!await isUserMemberOfMellowServer(session.sub, id))
 		throw error(403, 'no_permission');
 
 	const body = await parseBody(request, MELLOW_SERVER_PROFILE_SYNC_ACTION_PAYLOAD);
@@ -60,7 +60,7 @@ export const POST = (async ({ locals: { getUser }, params: { id }, request }) =>
 			type: body.type,
 			data: body.data,
 			server_id: id,
-			creator_id: user.id,
+			creator_id: session.sub,
 			requirements_type: body.requirements_type
 		})
 		.select('id, name, type, data, creator:users ( name, username ), created_at, requirements_type')
@@ -80,7 +80,7 @@ export const POST = (async ({ locals: { getUser }, params: { id }, request }) =>
 		requirements = response2.data!;
 	}
 	
-	await createMellowServerAuditLog(MellowServerAuditLogType.CreateRobloxLink, user.id, id, {
+	await createMellowServerAuditLog(MellowServerAuditLogType.CreateRobloxLink, session.sub, id, {
 		name: body.name,
 		type: body.type,
 		data: body.data,

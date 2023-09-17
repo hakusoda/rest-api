@@ -12,9 +12,9 @@ const POST_PAYLOAD = z.object({
 		url: z.string().url().max(200)
 	})).max(2).optional()
 });
-export const POST = (async ({ locals: { getUser }, params: { id }, request }) => {
-	const user = await getUser();
-	if (user.id !== id)
+export const POST = (async ({ locals: { getSession }, params: { id }, request }) => {
+	const session = await getSession();
+	if (session.sub !== id)
 		throw error(403, 'forbidden');
 
 	const { content, attachments } = await parseBody(request, POST_PAYLOAD);

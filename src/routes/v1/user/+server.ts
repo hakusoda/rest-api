@@ -10,15 +10,15 @@ const PATCH_PAYLOAD = z.object({
 	name: z.string().min(3).max(20).regex(DISPLAY_NAME_REGEX).nullable().optional(),
 	username: z.string().min(3).max(20).regex(USERNAME_REGEX).optional()
 });
-export const PATCH = (async ({ locals: { getUser }, request }) => {
-	const user = await getUser();
+export const PATCH = (async ({ locals: { getSession }, request }) => {
+	const session = await getSession();
 	const body = await parseBody(request, PATCH_PAYLOAD);
 	const response = await supabase.from('users')
 		.update({
 			...body,
 			is_edited: true
 		})
-		.eq('id', user.id);
+		.eq('id', session.sub);
 	handleResponse(response);
 
 	return new Response();

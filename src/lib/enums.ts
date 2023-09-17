@@ -7,6 +7,11 @@ export enum UserRobloxLinkType {
 	Account
 }
 
+export enum UserConnectionType {
+	Discord,
+	GitHub
+}
+
 export enum TeamAuditLogType {
 	CreateTeam,
 	RenameTeam,

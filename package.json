@@ -12,13 +12,21 @@
 	"devDependencies": {
 		"@sveltejs/adapter-vercel": "^3.0.3",
 		"@sveltejs/kit": "^1.23.0",
+		"@types/ua-parser-js": "^0.7.37",
 		"svelte": "^4.2.0",
 		"typescript": "^5.2.2",
 		"vite": "^4.4.9"
 	},
 	"dependencies": {
+		"@hexagon/base64": "^1.1.27",
 		"@napi-rs/canvas": "^0.1.44",
+		"@peculiar/asn1-ecc": "^2.3.6",
+		"@peculiar/asn1-schema": "^2.3.6",
 		"@supabase/supabase-js": "^2.33.1",
+		"@vercel/kv": "^0.2.2",
+		"cbor-x": "^1.5.4",
+		"jose": "^4.14.6",
+		"ua-parser-js": "^1.0.36",
 		"zod": "^3.22.2"
 	}
 }

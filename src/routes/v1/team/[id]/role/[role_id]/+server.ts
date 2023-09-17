@@ -11,10 +11,10 @@ const PATCH_BODY = z.object({
 	position: z.number().int().min(0).max(256).optional(),
 	permissions: z.number().int().optional()
 });
-export const PATCH = (async ({ locals: { getUser }, params: { id, role_id }, request }) => {
-	const user = await getUser();
-	const member = await getMember(id, user.id);
-	if (!member || (user.id !== member.team.owner_id && (!member.role || !hasBit(member.role.permissions, TeamRolePermission.ManageRoles))))
+export const PATCH = (async ({ locals: { getSession }, params: { id, role_id }, request }) => {
+	const session = await getSession();
+	const member = await getMember(id, session.sub);
+	if (!member || (session.sub !== member.team.owner_id && (!member.role || !hasBit(member.role.permissions, TeamRolePermission.ManageRoles))))
 		throw error(403, 'no_permission');
 
 	const response = await supabase.from('team_roles')
@@ -28,7 +28,7 @@ export const PATCH = (async ({ locals: { getUser }, params: { id, role_id }, req
 	if (!response.data)
 		throw error(404, 'not_found');
 
-	if (member.role && user.id !== member.team.owner_id && member.role.position <= response.data.position)
+	if (member.role && session.sub !== member.team.owner_id && member.role.position <= response.data.position)
 		throw error(500, 'no_permission');	
 
 	const body = await parseBody(request, PATCH_BODY);
@@ -38,7 +38,7 @@ export const PATCH = (async ({ locals: { getUser }, params: { id, role_id }, req
 		.eq('team_id', id);
 	handleResponse(response2);
 
-	await createTeamAuditLog(TeamAuditLogType.UpdateRole, user.id, id, {
+	await createTeamAuditLog(TeamAuditLogType.UpdateRole, session.sub, id, {
 		name: [response.data.name, body.name],
 		position: [response.data.position, body.position],
 		permissions: [response.data.permissions, body.permissions]

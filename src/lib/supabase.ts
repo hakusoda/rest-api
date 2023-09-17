@@ -12,7 +12,7 @@ export default createClient(NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY,
 
 export function handleResponse(response: PostgrestSingleResponse<any>) {
 	if (response.error) {
-		console.log(response.error);
+		console.error(response.error);
 		throw error(500, 'database_error');
 	}
 }

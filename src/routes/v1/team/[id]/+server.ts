@@ -54,9 +54,9 @@ const PATCH_BODY = z.object({
 	website_url: z.string().url().max(50).nullable().optional(),
 	display_name: z.string().min(3).max(20).optional()
 });
-export const PATCH = (async ({ locals: { getUser }, params: { id }, request }) => {
-	const user = await getUser();
-	if (!await hasTeamPermissions(id, user.id, [TeamRolePermission.ManageTeam]))
+export const PATCH = (async ({ locals: { getSession }, params: { id }, request }) => {
+	const session = await getSession();
+	if (!await hasTeamPermissions(id, session.sub, [TeamRolePermission.ManageTeam]))
 		throw error(403, 'no_permission');
 
 	const body = await parseBody(request, PATCH_BODY);

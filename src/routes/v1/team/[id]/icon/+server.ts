@@ -5,12 +5,9 @@ import { processAvatarImage } from '$lib/image';
 import type { RequestHandler } from './$types';
 import supabase, { handleResponse } from '$lib/supabase';
 export const config = { runtime: 'nodejs18.x' };
-export const PATCH = (async ({ locals: { getUser }, params: { id }, request }) => {
-	const user = await getUser();
-	if (user.id !== id)
-		throw error(403, 'forbidden');
-
-	if (!await hasTeamPermissions(id, user.id, [TeamRolePermission.ManageTeam]))
+export const PATCH = (async ({ locals: { getSession }, params: { id }, request }) => {
+	const session = await getSession();
+	if (!await hasTeamPermissions(id, session.sub, [TeamRolePermission.ManageTeam]))
 		throw error(403, 'no_permission');
 
 	const image = await processAvatarImage(await request.arrayBuffer());

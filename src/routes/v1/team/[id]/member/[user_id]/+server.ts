@@ -9,9 +9,9 @@ import { parseBody, createTeamAuditLog, hasTeamPermissions } from '$lib/util';
 const PATCH_BODY = z.object({
 	role_id: z.string().uuid().nullable()
 });
-export const PATCH = (async ({ locals: { getUser }, params: { id, user_id }, request }) => {
-	const user = await getUser();
-	if (!await hasTeamPermissions(id, user.id, [TeamRolePermission.ManageMembers]))
+export const PATCH = (async ({ locals: { getSession }, params: { id, user_id }, request }) => {
+	const session = await getSession();
+	if (!await hasTeamPermissions(id, session.sub, [TeamRolePermission.ManageMembers]))
 		throw error(403, 'no_permission');
 
 	const response = await supabase.from('team_members').select('role_id')
@@ -44,7 +44,7 @@ export const PATCH = (async ({ locals: { getUser }, params: { id, user_id }, req
 		.eq('user_id', user_id);
 	handleResponse(response3);
 
-	await createTeamAuditLog(TeamAuditLogType.UpdateMember, user.id, id, {
+	await createTeamAuditLog(TeamAuditLogType.UpdateMember, session.sub, id, {
 		role_id: [response.data.role_id, body.role_id]
 	});
 
