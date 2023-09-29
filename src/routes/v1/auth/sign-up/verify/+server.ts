@@ -44,7 +44,7 @@ export const POST = (async ({ cookies, request }) => {
 		});
 	handleResponse(response2);
 
-	const token = await new SignJWT({ sub: data.id })
+	const token = await new SignJWT({ sub: data.id, source_device_id: id })
 		.setProtectedHeader({ alg: 'HS256' })
 		.setIssuedAt()
 		.setExpirationTime('1h')

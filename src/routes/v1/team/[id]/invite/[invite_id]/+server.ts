@@ -6,7 +6,7 @@ import supabase, { handleResponse } from '$lib/supabase';
 import { TeamAuditLogType, TeamRolePermission } from '$lib/enums';
 import { hasBit, parseBody, createTeamAuditLog } from '$lib/util';
 
-export const POST = (async ({ locals: { getSession }, params: { id, invite_id } }) => {
+export const PATCH = (async ({ locals: { getSession }, params: { id, invite_id } }) => {
 	const session = await getSession();
 	const response = await supabase.from('team_invites')
 		.delete()

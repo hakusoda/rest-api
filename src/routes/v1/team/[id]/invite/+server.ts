@@ -17,7 +17,7 @@ export const POST = (async ({ locals: { getSession }, params: { id }, request })
 	const body = await parseBody(request, POST_PAYLOAD);
 	const response = await supabase.from('team_invites').upsert({
 		team_id: id,
-		user_id: session.sub,
+		user_id: body.user_id,
 		author_id: session.sub
 	});
 	handleResponse(response);

@@ -24,3 +24,6 @@ export const JWT_SECRET = new TextEncoder().encode(_JWT_SECRET);
 
 export const API_URL = dev ? 'https://api-dev-tunnel.voxelified.com' : 'https://api.voxelified.com';
 export const WEBSITE_URL = `https://${RELYING_PARTY_ID}`;
+
+export const OAUTH_SCOPES = ['openid'] as const;
+export const OAUTH_SCOPE_OPERATIONS = ['read'] as const;

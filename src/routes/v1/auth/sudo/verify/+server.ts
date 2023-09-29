@@ -1,30 +1,27 @@
 import { z } from 'zod';
 import { kv } from '@vercel/kv';
 import base64 from '@hexagon/base64';
-import { json } from '@sveltejs/kit';
-import { SignJWT } from 'jose';
 import { decodeMultiple } from 'cbor-x';
 
 import { error } from '$lib/response';
 import type { RequestHandler } from './$types';
 import type { UserAuthSignInData } from '$lib/types';
 import supabase, { handleResponse } from '$lib/supabase';
-import { JWT_SECRET, USERNAME_REGEX } from '$lib/constants';
 import { isCOSEPublicKeyEC2, isCOSEPublicKeyOKP, isCOSEPublicKeyRSA } from '$lib/cose';
-import { parseBody, verifyEC2, concatUint8Arrays, createRefreshToken, unwrapEC2Signature } from '$lib/util';
+import { parseBody, verifyEC2, concatUint8Arrays, unwrapEC2Signature } from '$lib/util';
 
 const POST_PAYLOAD = z.object({
 	id: z.string(),
 	authData: z.string(),
-	username: z.string().min(3).max(20).regex(USERNAME_REGEX),
 	challenge: z.string(),
 	signature: z.string(),
 	clientData: z.string()
 });
-export const POST = (async ({ cookies, request }) => {
-	const { id, authData, username, challenge, signature, clientData } = await parseBody(request, POST_PAYLOAD);
+export const POST = (async ({ locals: { getSession }, request }) => {
+	const { sub } = await getSession();
+	const { id, authData, challenge, signature, clientData } = await parseBody(request, POST_PAYLOAD);
 
-	const data = await kv.get<UserAuthSignInData>(`auth_signin_${username}`);
+	const data = await kv.get<UserAuthSignInData>(`auth_sudo_${sub}`);
 	if (!data || data.challenge !== challenge)
 		throw error(400, 'invalid_body');
 
@@ -62,16 +59,11 @@ export const POST = (async ({ cookies, request }) => {
 		.eq('id', id);
 	handleResponse(response);
 
-	const token = await new SignJWT({ sub: data.id, source_device_id: id })
-		.setProtectedHeader({ alg: 'HS256' })
-		.setIssuedAt()
-		.setExpirationTime('1h')
-		.sign(JWT_SECRET);
+	// TODO: make this session-based
+	const response2 = await supabase.from('users')
+		.update({ sudo_mode_last_entered_at: new Date() })
+		.eq('id', sub);
+	handleResponse(response2);
 
-	const refresh = await createRefreshToken(data.id);
-	const cookieOptions = { path: '/', domain: '.voxelified.com', expires: new Date(Date.now() + 31556926000), sameSite: 'none', httpOnly: false } as const;
-	cookies.set('auth-token', token, cookieOptions);
-	cookies.set('refresh-token', refresh, cookieOptions);
-
-	return json({ user_id: data.id });
+	return new Response();
 }) satisfies RequestHandler;

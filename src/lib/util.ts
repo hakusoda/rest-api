@@ -24,6 +24,14 @@ export async function parseBody<T extends ZodSchema = ZodAny>(request: Request, 
 	return result.data;
 }
 
+export async function parseQuery<T extends ZodSchema = ZodAny>(request: Request, schema: T): Promise<T['_output']> {
+	const result = schema.safeParse(Object.fromEntries(new URL(request.url).searchParams.entries()));
+	if (!result.success)
+		throw error(400, 'invalid_query', result.error.issues);
+
+	return result.data;
+}
+
 export async function hasTeamPermissions(teamId: string, userId: string, permissions: TeamRolePermission[]) {
 	const response = await supabase.from('team_members')
 		.select<string, {
@@ -94,6 +102,22 @@ export async function isUserMemberOfMellowServer(userId: string, serverId: strin
 	handleResponse(response);
 
 	return !!response.count;
+}
+
+export async function isUserInSudoMode(userId: string) {
+	const response = await supabase.from('users')
+		.select('sudo_mode_last_entered_at')
+		.eq('id', userId)
+		.limit(1)
+		.single();
+	handleResponse(response);
+
+	return Date.parse(response.data!.sudo_mode_last_entered_at) > Date.now() - 7200000;
+}
+
+export async function throwIfUserNotInSudo(userId: string) {
+	if (!await isUserInSudoMode(userId))
+		throw error(403, 'not_in_sudo_mode');
 }
 
 export function readAttestation(attestation: string) {
