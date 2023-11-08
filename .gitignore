@@ -5,3 +5,4 @@ node_modules
 avatar-processor
 yarn-error.*
 .yarn
+.env*.local

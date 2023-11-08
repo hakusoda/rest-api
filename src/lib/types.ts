@@ -23,3 +23,12 @@ export interface UserSessionJWT {
 	iat: number
 	exp: number
 }
+
+export interface UserConnectionCallbackResponse {
+	sub: string
+	name?: string | null
+	metadata: any
+	username: string
+	avatar_url?: string | null
+	website_url?: string | null
+}

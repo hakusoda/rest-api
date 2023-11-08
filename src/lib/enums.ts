@@ -14,13 +14,10 @@ export enum UserNotificationState {
 	Read
 }
 
-export enum UserRobloxLinkType {
-	Account
-}
-
 export enum UserConnectionType {
 	Discord,
-	GitHub
+	GitHub,
+	Roblox
 }
 
 export enum TeamAuditLogType {

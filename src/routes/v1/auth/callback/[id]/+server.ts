@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import { SignJWT } from 'jose';
 import { redirect } from '@sveltejs/kit';
 
@@ -6,42 +7,18 @@ import { createRefreshToken } from '$lib/util';
 import { UserConnectionType } from '$lib/enums';
 import type { RequestHandler } from './$types';
 import supabase, { handleResponse } from '$lib/supabase';
-import { DISCORD_ID, DISCORD_SECRET } from '$env/static/private';
-import { API_URL, JWT_SECRET, WEBSITE_URL } from '$lib/constants';
-export const GET = (async ({ url, locals: { getSession }, cookies, request }) => {
+import { JWT_SECRET, WEBSITE_URL, USER_CONNECTION_CALLBACKS } from '$lib/constants';
+
+const ENUM = z.nativeEnum(UserConnectionType);
+export const GET = (async ({ url, locals: { getSession }, cookies, params }) => {
+	const type = await ENUM.parseAsync(parseInt(params.id)).catch(() => { throw error(400, 'invalid_type') });
 	const session = await getSession(false).catch(() => null);
-	const code = url.searchParams.get('code');
-	if (!code)
-		throw error(400, 'invalid_query');
-
-	const params = new URLSearchParams();
-	params.set('code', code);
-	params.set('client_id', DISCORD_ID);
-	params.set('grant_type', 'authorization_code');
-	params.set('redirect_uri', `${API_URL}/v1/auth/callback/discord`);
-	params.set('client_secret', DISCORD_SECRET);
-
-	const { token_type, access_token } = await fetch('https://discord.com/api/v10/oauth2/token', {
-		body: params,
-		method: 'POST', 
-		headers: {
-			'content-type': 'application/x-www-form-urlencoded'
-		}
-	}).then(response => response.json());
-	if (!access_token)
-		throw error(500, 'unknown');
-
-	const metadata = await fetch('https://discord.com/api/v10/users/@me', {
-		headers: { authorization: `${token_type} ${access_token}` }
-	}).then(response => response.json());
-	const { id, avatar, username, global_name } = metadata;
-	if (!id)
-		throw error(500, 'unknown');
+	const { sub, name, username, metadata, avatar_url, website_url } = await USER_CONNECTION_CALLBACKS[type](url);
 
 	const response = await supabase.from('user_connections')
 		.select('id, user_id')
-		.eq('sub', id)
-		.eq('type', UserConnectionType.Discord)
+		.eq('sub', sub)
+		.eq('type', type)
 		.limit(1)
 		.maybeSingle();
 	handleResponse(response);
@@ -53,21 +30,15 @@ export const GET = (async ({ url, locals: { getSession }, cookies, request }) =>
 			const response = await supabase.from('users')
 				.insert({
 					id: user_id,
-					name: global_name,
+					name,
 					username,
-					avatar_url: avatar ? `https://cdn.discordapp.com/avatars/${id}/${avatar}.${avatar.startsWith('a_') ? 'gif' : 'webp'}?size=256` : null
+					avatar_url
 				});
 			handleResponse(response);
 		}
 
 		const response2 = await supabase.from('user_connections')
-			.insert({
-				sub: id,
-				type: UserConnectionType.Discord,
-				name: `${global_name ?? username} (@${username})`,
-				user_id,
-				metadata
-			})
+			.insert({ sub, type, user_id, metadata, avatar_url, website_url })
 			.select('id')
 			.limit(1)
 			.single();
@@ -82,7 +53,7 @@ export const GET = (async ({ url, locals: { getSession }, cookies, request }) =>
 	const token = await new SignJWT({
 		sub: user_id,
 		source_connection_id: connection_id,
-		source_connection_type: UserConnectionType.Discord
+		source_connection_type: type
 	})
 		.setProtectedHeader({ alg: 'HS256' })
 		.setIssuedAt()
@@ -95,5 +66,5 @@ export const GET = (async ({ url, locals: { getSession }, cookies, request }) =>
 	cookies.set('refresh-token', refresh, cookieOptions);
 
 	const redirectUri = url.searchParams.get('redirect_uri');
-	throw redirect(302, `${WEBSITE_URL}${redirectUri || `/user/${user_id}`}`);
+	throw redirect(302, redirectUri?.startsWith('https://') ? redirectUri : `${WEBSITE_URL}${redirectUri || `/user/${user_id}`}`);
 }) satisfies RequestHandler;

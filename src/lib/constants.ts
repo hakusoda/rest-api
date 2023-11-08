@@ -1,7 +1,12 @@
 import { z } from 'zod';
+import { OpenCloudClient, exchangeOAuthCodeForMethod } from '@voxelified/roblox-open-cloud';
 
 import { dev } from '$app/environment';
-import { JWT_SECRET as _JWT_SECRET } from '$env/static/private';
+import { error } from './response';
+import { fetchJson } from './util';
+import { UserConnectionType } from '$lib/enums';
+import type { UserConnectionCallbackResponse } from './types';
+import { JWT_SECRET as _JWT_SECRET, GITHUB_ID, ROBLOX_ID, DISCORD_ID, GITHUB_SECRET, ROBLOX_SECRET, DISCORD_SECRET } from '$env/static/private';
 import { MellowProfileSyncActionType, MellowProfileSyncActionRequirementType, MellowProfileSyncActionRequirementsType } from '$lib/enums';
 export const UUID_REGEX = /^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$/;
 export const USERNAME_REGEX = /^[\w-]+$/;
@@ -17,6 +22,103 @@ export const MELLOW_SERVER_PROFILE_SYNC_ACTION_PAYLOAD = z.object({
 	})).max(25),
 	requirements_type: z.nativeEnum(MellowProfileSyncActionRequirementsType)
 });
+
+export const USER_CONNECTION_CALLBACKS: Record<UserConnectionType, (url: URL) => Promise<UserConnectionCallbackResponse>> = {
+	[UserConnectionType.Discord]: async (url: URL) => {
+		const code = url.searchParams.get('code');
+		if (!code)
+			throw error(400, 'invalid_query');
+
+		const params = new URLSearchParams();
+		params.set('code', code);
+		params.set('client_id', DISCORD_ID);
+		params.set('grant_type', 'authorization_code');
+		params.set('redirect_uri', `https://${url.hostname}${url.pathname}`);
+		params.set('client_secret', DISCORD_SECRET);
+
+		const { token_type, access_token } = await fetchJson('https://discord.com/api/v10/oauth2/token', {
+			body: params,
+			method: 'POST', 
+			headers: {
+				'content-type': 'application/x-www-form-urlencoded'
+			}
+		});
+		if (!access_token)
+			throw error(500, 'unknown');
+
+		const metadata = await fetchJson('https://discord.com/api/v10/users/@me', {
+			headers: { authorization: `${token_type} ${access_token}` }
+		});
+		const { id, avatar, username, global_name } = metadata;
+		if (!id)
+			throw error(500, 'unknown');
+
+		if (url.searchParams.get('state') === 'roblox')
+			url.searchParams.set('redirect_uri', `https://apis.roblox.com/oauth/v1/authorize?scope=openid+profile&client_id=3637948605801680640&redirect_uri=https%3A%2F%2Fapi.voxelified.com%2Fv1%2Fauth%2Fcallback%2F2&response_type=code`);
+
+		return {
+			sub: id,
+			name: global_name || username,
+			username,
+			metadata,
+			avatar_url: avatar ? `https://cdn.discordapp.com/avatars/${id}/${avatar}.${avatar.startsWith('a_') ? 'gif' : 'webp'}?size=256` : null
+		};
+	},
+	[UserConnectionType.GitHub]: async (url: URL) => {
+		const code = url.searchParams.get('code');
+		if (!code)
+			throw error(400, 'invalid_query');
+
+		const params = new URLSearchParams({
+			code,
+			client_id: GITHUB_ID,
+			client_secret: GITHUB_SECRET
+		});
+		const { access_token } = await fetchJson('https://github.com/login/oauth/access_token', {
+			body: params,
+			method: 'POST',
+			headers: { accept: 'application/json', 'content-type': 'application/x-www-form-urlencoded;charset=UTF-8' }
+		});
+		const metadata = await fetchJson('https://api.github.com/user', {
+			headers: {
+				accept: 'application/json',
+				authorization: `Bearer ${access_token}`
+			}
+		});
+		const { id, name, login, avatar_url } = metadata;
+		if (!id)
+			throw error(500, 'unknown');
+
+		return {
+			sub: id,
+			name,
+			metadata,
+			username: login,
+			avatar_url
+		};
+	},
+	[UserConnectionType.Roblox]: async (url: URL) => {
+		const code = url.searchParams.get('code');
+		if (!code)
+			throw error(400, 'invalid_query');
+
+		const auth = await exchangeOAuthCodeForMethod(ROBLOX_ID as any, ROBLOX_SECRET as any, code)
+			.catch(() => {
+				throw error(500, 'external_request_error');
+			});
+
+		const metadata = await new OpenCloudClient(auth).users.get()!;
+		const { sub, name, profile, picture, preferred_username } = metadata;
+		return {
+			sub,
+			name,
+			metadata,
+			username: preferred_username!,
+			avatar_url: picture,
+			website_url: profile
+		};
+	}
+};
 
 export const RELYING_PARTY_ID = dev ? 'website-dev-tunnel.voxelified.com' : 'voxelified.com';
 

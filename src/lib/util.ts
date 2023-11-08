@@ -296,3 +296,16 @@ export async function throwIfFeatureNotEnabled(feature: ApiFeatureFlag) {
 	if (!enabled)
 		throw error(503, 'feature_disabled');
 }
+
+export function fetchJson<T = any>(input: URL | RequestInfo, init?: RequestInit): Promise<T> {
+	return fetch(input, init)
+		.then(jsonResponse);
+}
+
+export const jsonResponse = (response: Response) => {
+	if (!response.ok) {
+		response.text().then(console.error).catch(console.error);
+		throw error(500, 'external_request_error');
+	}
+	return response.json();
+}
