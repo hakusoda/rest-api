@@ -106,13 +106,13 @@ export async function isUserMemberOfMellowServer(userId: string, serverId: strin
 
 export async function isUserInSudoMode(userId: string) {
 	const response = await supabase.from('users')
-		.select('sudo_mode_last_entered_at')
+		.select('devices:user_devices ( count ), sudo_mode_last_entered_at')
 		.eq('id', userId)
 		.limit(1)
 		.single();
 	handleResponse(response);
 
-	return Date.parse(response.data!.sudo_mode_last_entered_at) > Date.now() - 7200000;
+	return !response.data!.devices[0].count || Date.parse(response.data!.sudo_mode_last_entered_at) > Date.now() - 7200000;
 }
 
 export async function throwIfUserNotInSudo(userId: string) {

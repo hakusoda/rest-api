@@ -18,7 +18,7 @@ export const POST = (async ({ locals: { getSession }, params: { id }, request })
 	const body = await parseBody(request, MELLOW_SERVER_PROFILE_SYNC_ACTION_PAYLOAD);
 	const issues: ZodIssue[] = [];
 	for (const [index, { type, data: rData }] of Object.entries(body.requirements)) {
-		if (type === MellowProfileSyncActionRequirementType.HasRobloxGroupRole || type === MellowProfileSyncActionRequirementType.HasRobloxGroupRankInRange) {
+		if (type === MellowProfileSyncActionRequirementType.RobloxHasGroupRole || type === MellowProfileSyncActionRequirementType.RobloxHasGroupRankInRange) {
 			if (!isFinite(+rData[0]))
 				issues.push({
 					code: 'custom',
@@ -27,14 +27,14 @@ export const POST = (async ({ locals: { getSession }, params: { id }, request })
 				});
 		}
 
-		if (type === MellowProfileSyncActionRequirementType.HasRobloxGroupRole) {
+		if (type === MellowProfileSyncActionRequirementType.RobloxHasGroupRole) {
 			if (!isFinite(+rData[1]))
 				issues.push({
 					code: 'custom',
 					path: ['requirements', index, 'data', 1],
 					message: ''
 				});
-		} else if (type === MellowProfileSyncActionRequirementType.HasRobloxGroupRankInRange) {
+		} else if (type === MellowProfileSyncActionRequirementType.RobloxHasGroupRankInRange) {
 			const [_, min, max] = rData;
 			if (!min || !isFinite(+min) || +min <= 0)
 				issues.push({

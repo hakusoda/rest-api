@@ -15,14 +15,14 @@ const POST_PAYLOAD = z.object({
 export const POST = (async ({ request }) => {
 	const { code, application_id, application_secret } = await parseBody(request, POST_PAYLOAD);
 
-	const response = await supabase.from('oauth_applications')
+	const response = await supabase.from('applications')
 		.select('*', { head: true, count: 'exact' })
 		.eq('id', application_id)
 		.eq('secret_key', application_secret);
 	handleResponse(response);
 
 	if (!response.count)
-		throw error(404, 'oauth_application_not_found');
+		throw error(404, 'application_not_found');
 
 	const response2 = await supabase.from('oauth_response_codes')
 		.delete()

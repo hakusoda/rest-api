@@ -12,7 +12,7 @@ export const MELLOW_SERVER_PROFILE_SYNC_ACTION_PAYLOAD = z.object({
 	type: z.nativeEnum(MellowProfileSyncActionType),
 	data: z.array(z.string().max(100)).max(20),
 	requirements: z.array(z.object({
-		data: z.array(z.string().max(100)).max(5),
+		data: z.array(z.string().max(100).or(z.number().int().finite()).transform(value => value.toString())).max(5),
 		type: z.nativeEnum(MellowProfileSyncActionRequirementType)
 	})).max(25),
 	requirements_type: z.nativeEnum(MellowProfileSyncActionRequirementsType)

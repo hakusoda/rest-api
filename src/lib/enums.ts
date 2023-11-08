@@ -62,7 +62,11 @@ export enum MellowProfileSyncActionRequirementType {
 	RobloxIsFriendsWith,
 	MeetOtherAction,
 	VoxelifiedInTeam,
-	SteamInGroup
+	SteamInGroup,
+	RobloxHasAsset,
+	RobloxHasBadge,
+	RobloxHasPass,
+	GitHubInOrganisation
 }
 export enum MellowProfileSyncActionRequirementsType {
 	MeetAll,
