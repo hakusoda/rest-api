@@ -255,18 +255,6 @@ export function unwrapEC2Signature(signature: Uint8Array) {
 
 const shouldRemoveLeadingZero = (bytes: Uint8Array) => bytes[0] === 0x0 && (bytes[1] & (1 << 7)) !== 0;
 
-export async function createRefreshToken(user_id: string) {
-	const token = new Uint32Array(64);
-	crypto.getRandomValues(token);
-
-	const refresh_token = base64.fromArrayBuffer(token);
-	const response = await supabase.from('user_refresh_tokens')
-		.insert({ user_id, refresh_token });
-	handleResponse(response);
-
-	return refresh_token;
-}
-
 const BROWSER_NAME_MAP: Record<string, string> = {
 	Edge: 'Microsoft Edge',
 	Chrome: 'Google Chrome',

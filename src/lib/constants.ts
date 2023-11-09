@@ -120,7 +120,7 @@ export const USER_CONNECTION_CALLBACKS: Record<UserConnectionType, (url: URL) =>
 	}
 };
 
-export const RELYING_PARTY_ID = dev ? 'website-dev-tunnel.voxelified.com' : 'voxelified.com';
+export const RELYING_PARTY_ID = 'voxelified.com';
 
 export const JWT_SECRET = new TextEncoder().encode(_JWT_SECRET);
 

@@ -21,7 +21,7 @@ export interface UserAddDeviceData {
 export interface UserSessionJWT {
 	sub: string
 	iat: number
-	exp: number
+	device_public_key: string
 }
 
 export interface UserConnectionCallbackResponse {

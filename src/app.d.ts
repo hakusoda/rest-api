@@ -13,7 +13,7 @@ declare global {
 	namespace App {
 		// interface Error {}
 		interface Locals {
-			getSession<T extends boolean = true>(required?: T): Promise<T extends true ? UserSessionJWT : UserSessionJWT | null>
+			getSession<T extends boolean = true>(required?: T, verifyDevice?: boolean): Promise<T extends true ? UserSessionJWT : UserSessionJWT | null>
 		}
 		// interface PageData {}
 		// interface Platform {}

@@ -11,18 +11,19 @@ import type { UserAuthSignInData } from '$lib/types';
 import supabase, { handleResponse } from '$lib/supabase';
 import { JWT_SECRET, USERNAME_REGEX } from '$lib/constants';
 import { isCOSEPublicKeyEC2, isCOSEPublicKeyOKP, isCOSEPublicKeyRSA } from '$lib/cose';
-import { parseBody, verifyEC2, concatUint8Arrays, createRefreshToken, unwrapEC2Signature } from '$lib/util';
+import { parseBody, verifyEC2, concatUint8Arrays, unwrapEC2Signature } from '$lib/util';
 
 const POST_PAYLOAD = z.object({
 	id: z.string(),
-	authData: z.string(),
+	auth_data: z.string(),
 	username: z.string().min(3).max(20).regex(USERNAME_REGEX),
 	challenge: z.string(),
 	signature: z.string(),
-	clientData: z.string()
+	client_data: z.string(),
+	device_public_key: z.string()
 });
 export const POST = (async ({ cookies, request }) => {
-	const { id, authData, username, challenge, signature, clientData } = await parseBody(request, POST_PAYLOAD);
+	const { id, auth_data, username, challenge, signature, client_data, device_public_key } = await parseBody(request, POST_PAYLOAD);
 
 	const data = await kv.get<UserAuthSignInData>(`auth_signin_${username}`);
 	if (!data || data.challenge !== challenge)
@@ -32,8 +33,8 @@ export const POST = (async ({ cookies, request }) => {
 	if (!device)
 		throw error(400, 'invalid_body');
 
-	const authDataBuffer = new Uint8Array(base64.toArrayBuffer(authData));
-	const clientDataBuffer = base64.toArrayBuffer(clientData);
+	const authDataBuffer = new Uint8Array(base64.toArrayBuffer(auth_data));
+	const clientDataBuffer = base64.toArrayBuffer(client_data);
 	const clientDataHash = new Uint8Array(await crypto.subtle.digest('SHA-256', clientDataBuffer));
 
 	const signatureBase = concatUint8Arrays(authDataBuffer, clientDataHash);
@@ -62,16 +63,12 @@ export const POST = (async ({ cookies, request }) => {
 		.eq('id', id);
 	handleResponse(response);
 
-	const token = await new SignJWT({ sub: data.id, source_device_id: id })
+	const token = await new SignJWT({ sub: data.id, source_device_id: id, device_public_key })
 		.setProtectedHeader({ alg: 'HS256' })
 		.setIssuedAt()
-		.setExpirationTime('1h')
 		.sign(JWT_SECRET);
 
-	const refresh = await createRefreshToken(data.id);
-	const cookieOptions = { path: '/', domain: '.voxelified.com', expires: new Date(Date.now() + 31556926000), sameSite: 'none', httpOnly: false } as const;
-	cookies.set('auth-token', token, cookieOptions);
-	cookies.set('refresh-token', refresh, cookieOptions);
+	cookies.set('auth-token', token, { path: '/', domain: '.voxelified.com', expires: new Date(Date.now() + 31556926000), sameSite: 'none', httpOnly: false });
 
 	return json({ user_id: data.id });
 }) satisfies RequestHandler;

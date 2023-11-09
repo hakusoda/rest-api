@@ -8,17 +8,18 @@ import type { RequestHandler } from './$types';
 import type { UserAuthSignUpData } from '$lib/types';
 import supabase, { handleResponse } from '$lib/supabase';
 import { JWT_SECRET, USERNAME_REGEX } from '$lib/constants';
-import { parseBody, readAttestation, getRequestOrigin, createRefreshToken } from '$lib/util';
+import { parseBody, readAttestation, getRequestOrigin } from '$lib/util';
 
 const POST_PAYLOAD = z.object({
 	username: z.string().min(3).max(20).regex(USERNAME_REGEX),
 	challenge: z.string(),
 	transports: z.array(z.string()),
 	attestation: z.string(),
-	platform_version: z.string().optional()
+	platform_version: z.string().optional(),
+	device_public_key: z.string()
 });
 export const POST = (async ({ cookies, request }) => {
-	const { username, challenge, transports, attestation, platform_version } = await parseBody(request, POST_PAYLOAD);
+	const { username, challenge, transports, attestation, platform_version, device_public_key } = await parseBody(request, POST_PAYLOAD);
 
 	const kvKey = `auth_signup_${username}`;
 	const data = await kv.get<UserAuthSignUpData>(kvKey);
@@ -44,16 +45,12 @@ export const POST = (async ({ cookies, request }) => {
 		});
 	handleResponse(response2);
 
-	const token = await new SignJWT({ sub: data.id, source_device_id: id })
+	const token = await new SignJWT({ sub: data.id, source_device_id: id, device_public_key })
 		.setProtectedHeader({ alg: 'HS256' })
 		.setIssuedAt()
-		.setExpirationTime('1h')
 		.sign(JWT_SECRET);
 
-	const refresh = await createRefreshToken(data.id);
-	const cookieOptions = { path: '/', domain: '.voxelified.com', expires: new Date(Date.now() + 31556926000), sameSite: 'none', httpOnly: false } as const;
-	cookies.set('auth-token', token, cookieOptions);
-	cookies.set('refresh-token', refresh, cookieOptions);
+	cookies.set('auth-token', token, { path: '/', domain: '.voxelified.com', expires: new Date(Date.now() + 31556926000), sameSite: 'none', httpOnly: false });
 
 	await kv.del(kvKey);
 	return json({ user_id: data.id });

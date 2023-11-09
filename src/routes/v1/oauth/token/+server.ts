@@ -41,7 +41,6 @@ export const POST = (async ({ request }) => {
 	})
 		.setProtectedHeader({ alg: 'HS256' })
 		.setIssuedAt()
-		.setExpirationTime('1w')
 		.sign(JWT_SECRET);
 
 	return json({ access_token });
