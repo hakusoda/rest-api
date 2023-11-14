@@ -24,7 +24,7 @@ export const POST = (async ({ locals: { getSession }, params: { id }, request })
 			creator_id: session.sub,
 			requirements_type: body.requirements_type
 		})
-		.select('id, name, type, data, creator:users ( name, username ), created_at, requirements_type')
+		.select('id, name, type, metadata, creator:users ( name, username ), created_at, requirements_type')
 		.limit(1)
 		.single();
 	handleResponse(response);
