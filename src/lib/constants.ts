@@ -12,15 +12,54 @@ export const UUID_REGEX = /^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$/;
 export const USERNAME_REGEX = /^[\w-]+$/;
 export const DISPLAY_NAME_REGEX = /^[\w !@#$%^&*()-:;"'{}[\]?\\|~`<>]+$/;
 
-export const MELLOW_SERVER_PROFILE_SYNC_ACTION_PAYLOAD = z.object({
+const mellowRemoveMemberMetadata = z.object({
+	audit_log_reason: z.string().max(512).nullable(),
+	user_facing_reason: z.string().max(512).nullable()
+});
+
+export const MELLOW_SERVER_PROFILE_SYNC_ACTION_METADATA: Record<MellowProfileSyncActionType, z.ZodType> = {
+	[MellowProfileSyncActionType.GiveRoles]: z.object({
+		items: z.array(z.string().max(64)).max(50).default([]),
+		can_remove: z.boolean().default(true)
+	}),
+	[MellowProfileSyncActionType.BanFromServer]: mellowRemoveMemberMetadata.extend({
+		delete_messages_seconds: z.number().int().min(0).max(604800).default(0)
+	}),
+	[MellowProfileSyncActionType.KickFromServer]: mellowRemoveMemberMetadata,
+	[MellowProfileSyncActionType.CancelSync]: z.object({
+		user_facing_reason: z.string().max(512).nullable()
+	})
+};
+
+export const MELLOW_SERVER_PROFILE_SYNC_ACTION_PAYLOAD_UNTRANSFORMED = z.object({
 	name: z.string().max(50),
 	type: z.nativeEnum(MellowProfileSyncActionType),
-	data: z.array(z.string().max(100)).max(20),
+	metadata: z.any(),
 	requirements: z.array(z.object({
 		data: z.array(z.string().max(100).or(z.number().int().finite()).transform(value => value.toString())).max(5),
 		type: z.nativeEnum(MellowProfileSyncActionRequirementType)
 	})).max(25),
 	requirements_type: z.nativeEnum(MellowProfileSyncActionRequirementsType)
+});
+
+export const MELLOW_SERVER_PROFILE_SYNC_ACTION_PAYLOAD_TRANSFORMER = ((value, ctx) => {
+	const result = MELLOW_SERVER_PROFILE_SYNC_ACTION_METADATA[value.type].safeParse(value.metadata);
+	if (result.success)
+		return { ...value, metadata: result.data };
+
+	for (const issue of result.error.issues)
+		ctx.addIssue({ ...issue, path: issue.path ? ['metadata', ...issue.path] : issue.path });
+	return z.NEVER;
+}) satisfies (arg: z.infer<typeof MELLOW_SERVER_PROFILE_SYNC_ACTION_PAYLOAD_UNTRANSFORMED>, ctx: z.RefinementCtx) => z.infer<typeof MELLOW_SERVER_PROFILE_SYNC_ACTION_PAYLOAD_UNTRANSFORMED>;
+
+export const MELLOW_SERVER_PROFILE_SYNC_ACTION_PAYLOAD = MELLOW_SERVER_PROFILE_SYNC_ACTION_PAYLOAD_UNTRANSFORMED.transform((value, ctx) => {
+	const result = MELLOW_SERVER_PROFILE_SYNC_ACTION_METADATA[value.type].safeParse(value.metadata);
+	if (result.success)
+		return { ...value, metadata: result.data };
+
+	for (const issue of result.error.issues)
+		ctx.addIssue(issue);
+	return z.NEVER;
 });
 
 export const USER_CONNECTION_CALLBACKS: Record<UserConnectionType, (url: URL) => Promise<UserConnectionCallbackResponse>> = {

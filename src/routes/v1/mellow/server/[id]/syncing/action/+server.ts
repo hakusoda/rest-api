@@ -1,11 +1,10 @@
 import { json } from '@sveltejs/kit';
-import type { ZodIssue } from 'zod';
 
 import { error } from '$lib/response';
 import type { RequestHandler } from './$types';
+import { MellowServerAuditLogType } from '$lib/enums';
 import supabase, { handleResponse } from '$lib/supabase';
 import { MELLOW_SERVER_PROFILE_SYNC_ACTION_PAYLOAD } from '$lib/constants';
-import { MellowServerAuditLogType, MellowProfileSyncActionRequirementType } from '$lib/enums';
 import { parseBody, createMellowServerAuditLog, isUserMemberOfMellowServer } from '$lib/util';
 export const POST = (async ({ locals: { getSession }, params: { id }, request }) => {
 	const session = await getSession();
@@ -16,49 +15,11 @@ export const POST = (async ({ locals: { getSession }, params: { id }, request })
 		throw error(403, 'no_permission');
 
 	const body = await parseBody(request, MELLOW_SERVER_PROFILE_SYNC_ACTION_PAYLOAD);
-	const issues: ZodIssue[] = [];
-	for (const [index, { type, data: rData }] of Object.entries(body.requirements)) {
-		if (type === MellowProfileSyncActionRequirementType.RobloxHasGroupRole || type === MellowProfileSyncActionRequirementType.RobloxHasGroupRankInRange) {
-			if (!isFinite(+rData[0]))
-				issues.push({
-					code: 'custom',
-					path: ['requirements', index, 'data', 0],
-					message: ''
-				});
-		}
-
-		if (type === MellowProfileSyncActionRequirementType.RobloxHasGroupRole) {
-			if (!isFinite(+rData[1]))
-				issues.push({
-					code: 'custom',
-					path: ['requirements', index, 'data', 1],
-					message: ''
-				});
-		} else if (type === MellowProfileSyncActionRequirementType.RobloxHasGroupRankInRange) {
-			const [_, min, max] = rData;
-			if (!min || !isFinite(+min) || +min <= 0)
-				issues.push({
-					code: 'custom',
-					path: ['requirements', index, 'data', 1],
-					message: ''
-				});
-			if (!max || !isFinite(+max) || +max > 255)
-				issues.push({
-					code: 'custom',
-					path: ['requirements', index, 'data', 2],
-					message: ''
-				});
-		}
-	}
-
-	if (issues.length)
-		throw error(400, 'invalid_body', issues);
-
 	const response = await supabase.from('mellow_binds')
 		.insert({
 			name: body.name,
 			type: body.type,
-			data: body.data,
+			metadata: body.metadata,
 			server_id: id,
 			creator_id: session.sub,
 			requirements_type: body.requirements_type
@@ -80,10 +41,10 @@ export const POST = (async ({ locals: { getSession }, params: { id }, request })
 		requirements = response2.data!;
 	}
 	
-	await createMellowServerAuditLog(MellowServerAuditLogType.CreateRobloxLink, session.sub, id, {
+	await createMellowServerAuditLog(MellowServerAuditLogType.CreateProfileSyncAction, session.sub, id, {
 		name: body.name,
 		type: body.type,
-		data: body.data,
+		metadata: body.metadata,
 		requirements: body.requirements.length,
 		requirements_type: body.requirements_type
 	}, response.data!.id);

@@ -46,23 +46,23 @@ export enum TeamRolePermission {
 }
 
 export enum MellowProfileSyncActionType {
-	DiscordRoles,
-	BanDiscord,
-	KickDiscord,
+	GiveRoles,
+	BanFromServer,
+	KickFromServer,
 	CancelSync
 }
 export enum MellowProfileSyncActionRequirementType {
-	RobloxHasVerifiedAccount,
-	RobloxHasGroupRole,
-	RobloxHasGroupRankInRange,
+	RobloxHaveConnection,
+	RobloxHaveGroupRole,
+	RobloxHaveGroupRankInRange,
 	RobloxInGroup,
-	RobloxIsFriendsWith,
+	RobloxBeFriendsWith,
 	MeetOtherAction,
-	VoxelifiedInTeam,
+	HAKUMIInTeam,
 	SteamInGroup,
-	RobloxHasAsset,
-	RobloxHasBadge,
-	RobloxHasPass,
+	RobloxHaveAsset,
+	RobloxHaveBadge,
+	RobloxHavePass,
 	GitHubInOrganisation
 }
 export enum MellowProfileSyncActionRequirementsType {
@@ -72,9 +72,9 @@ export enum MellowProfileSyncActionRequirementsType {
 
 export enum MellowServerAuditLogType {
 	CreateServer,
-	CreateRobloxLink,
-	UpdateRobloxGlobalSettings,
-	DeleteRobloxLink,
-	UpdateRobloxLink,
+	CreateProfileSyncAction,
+	UpdateProfileSyncingSettings,
+	DeleteProfileSyncAction,
+	UpdateProfileSyncAction,
 	UpdateLogging
 }
