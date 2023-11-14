@@ -13,7 +13,7 @@ export const GET = (async ({ locals: { getSession } }) => {
 	const options = {
 		rp: {
 			id: RELYING_PARTY_ID,
-			name: 'Voxelified'
+			name: 'HAKUMI'
 		},
 		user: {
 			id: session.sub,

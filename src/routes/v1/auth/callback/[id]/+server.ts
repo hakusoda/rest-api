@@ -64,7 +64,7 @@ export const GET = (async ({ url, locals: { getSession }, params, cookies, reque
 		.setIssuedAt()
 		.sign(JWT_SECRET);
 
-	cookies.set('auth-token', token, { path: '/', domain: '.voxelified.com', expires: new Date(Date.now() + 31556926000), sameSite: 'none', httpOnly: false });
+	cookies.set('auth-token', token, { path: '/', domain: '.hakumi.cafe', expires: new Date(Date.now() + 31556926000), sameSite: 'none', httpOnly: false });
 
 	const redirectUri = url.searchParams.get('redirect_uri');
 	throw redirect(302, redirectUri?.startsWith('https://') ? redirectUri : `${WEBSITE_URL}${redirectUri || `/user/${user_id}`}`);

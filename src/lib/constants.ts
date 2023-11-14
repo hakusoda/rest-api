@@ -1,7 +1,6 @@
 import { z } from 'zod';
 import { OpenCloudClient, exchangeOAuthCodeForMethod } from '@voxelified/roblox-open-cloud';
 
-import { dev } from '$app/environment';
 import { error } from './response';
 import { fetchJson } from './util';
 import { UserConnectionType } from '$lib/enums';
@@ -96,7 +95,7 @@ export const USER_CONNECTION_CALLBACKS: Record<UserConnectionType, (url: URL) =>
 			throw error(500, 'unknown');
 
 		if (url.searchParams.get('state') === 'roblox')
-			url.searchParams.set('redirect_uri', `https://apis.roblox.com/oauth/v1/authorize?scope=openid+profile&client_id=3637948605801680640&redirect_uri=https%3A%2F%2Fapi.voxelified.com%2Fv1%2Fauth%2Fcallback%2F2&response_type=code`);
+			url.searchParams.set('redirect_uri', `https://apis.roblox.com/oauth/v1/authorize?scope=openid+profile&client_id=3637948605801680640&redirect_uri=https%3A%2F%2Fapi.hakumi.cafe%2Fv1%2Fauth%2Fcallback%2F2&response_type=code`);
 
 		return {
 			sub: id,
@@ -177,11 +176,11 @@ export const USER_CONNECTION_CALLBACKS: Record<UserConnectionType, (url: URL) =>
 	}
 };
 
-export const RELYING_PARTY_ID = 'voxelified.com';
+export const RELYING_PARTY_ID = 'hakumi.cafe';
 
 export const JWT_SECRET = new TextEncoder().encode(_JWT_SECRET);
 
-export const API_URL = dev ? 'https://api-dev-tunnel.voxelified.com' : 'https://api.voxelified.com';
+export const API_URL = 'https://api.hakumi.cafe';
 export const WEBSITE_URL = `https://${RELYING_PARTY_ID}`;
 
 export const OAUTH_SCOPES = ['openid'] as const;

@@ -50,7 +50,7 @@ export const POST = (async ({ cookies, request }) => {
 		.setIssuedAt()
 		.sign(JWT_SECRET);
 
-	cookies.set('auth-token', token, { path: '/', domain: '.voxelified.com', expires: new Date(Date.now() + 31556926000), sameSite: 'none', httpOnly: false });
+	cookies.set('auth-token', token, { path: '/', domain: '.hakumi.cafe', expires: new Date(Date.now() + 31556926000), sameSite: 'none', httpOnly: false });
 
 	await kv.del(kvKey);
 	return json({ user_id: data.id });
