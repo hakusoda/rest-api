@@ -148,6 +148,21 @@ export const USER_CONNECTION_CALLBACKS: Record<UserConnectionType, (url: URL) =>
 
 		const metadata = await new OpenCloudClient(auth).users.get()!;
 		const { sub, name, profile, picture, preferred_username } = metadata;
+		
+		// we revoke the authorisation immediately after using it, as we are unable to publish the OAuth 2.0 Application, and we don't wish to hit the 100 user limit. although we don't know if this actually works.
+		// plus, we don't actually need it after this.
+		await fetch('https://apis.roblox.com/oauth/v1/token/revoke', {
+			body: new URLSearchParams({
+				token: auth.data.refresh_token,
+				client_id: ROBLOX_ID,
+				client_secret: ROBLOX_SECRET
+			}),
+			method: 'POST',
+			headers: {
+				'content-type': 'application/x-www-form-urlencoded'
+			}
+		});
+
 		return {
 			sub,
 			name,
