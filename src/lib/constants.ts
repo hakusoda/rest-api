@@ -34,7 +34,7 @@ export const MELLOW_SERVER_PROFILE_SYNC_ACTION_METADATA: Record<MellowProfileSyn
 export const MELLOW_SERVER_PROFILE_SYNC_ACTION_PAYLOAD_UNTRANSFORMED = z.object({
 	name: z.string().max(50),
 	type: z.nativeEnum(MellowProfileSyncActionType),
-	metadata: z.any(),
+	metadata: z.object({}).passthrough(),
 	requirements: z.array(z.object({
 		data: z.array(z.string().max(100).or(z.number().int().finite()).transform(value => value.toString())).max(5),
 		type: z.nativeEnum(MellowProfileSyncActionRequirementType)
@@ -43,6 +43,9 @@ export const MELLOW_SERVER_PROFILE_SYNC_ACTION_PAYLOAD_UNTRANSFORMED = z.object(
 });
 
 export const MELLOW_SERVER_PROFILE_SYNC_ACTION_PAYLOAD_TRANSFORMER = ((value, ctx) => {
+	if (!value.metadata)
+		return value;
+	
 	const result = MELLOW_SERVER_PROFILE_SYNC_ACTION_METADATA[value.type].safeParse(value.metadata);
 	if (result.success)
 		return { ...value, metadata: result.data };
