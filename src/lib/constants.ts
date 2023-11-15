@@ -94,9 +94,6 @@ export const USER_CONNECTION_CALLBACKS: Record<UserConnectionType, (url: URL) =>
 		if (!id)
 			throw error(500, 'unknown');
 
-		if (url.searchParams.get('state') === 'roblox')
-			url.searchParams.set('redirect_uri', `https://apis.roblox.com/oauth/v1/authorize?scope=openid+profile&client_id=3637948605801680640&redirect_uri=https%3A%2F%2Fapi.hakumi.cafe%2Fv1%2Fauth%2Fcallback%2F2&response_type=code`);
-
 		return {
 			sub: id,
 			name: global_name || username,
