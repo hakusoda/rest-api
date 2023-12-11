@@ -92,16 +92,14 @@ export async function createMellowServerAuditLog(type: MellowServerAuditLogType,
 		console.error(error);
 }
 
-export async function isUserMemberOfMellowServer(userId: string, serverId: string) {
-	const response = await supabase.from('mellow_server_members')
-		.select('*', { head: true, count: 'exact' })
-		.eq('user_id', userId)
-		.eq('server_id', serverId)
-		.limit(1)
-		.maybeSingle();
+export async function isUserMemberOfMellowServer(user_id: string, server_id: string) {
+	const response = await supabase.rpc('mellow_server_accessible_by_user2', {
+		user_id,
+		server_id
+	});
 	handleResponse(response);
 
-	return !!response.count;
+	return response.data as boolean;
 }
 
 export async function isUserInSudoMode(userId: string) {
