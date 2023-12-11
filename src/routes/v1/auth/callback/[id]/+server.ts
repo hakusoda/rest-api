@@ -4,6 +4,7 @@ import { redirect } from '@sveltejs/kit';
 
 import { error } from '$lib/response';
 import { parseQuery } from '$lib/util';
+import { MELLOW_API_KEY } from '$env/static/private';
 import { UserConnectionType } from '$lib/enums';
 import type { RequestHandler } from './$types';
 import supabase, { handleResponse } from '$lib/supabase';
@@ -59,9 +60,30 @@ export const GET = (async ({ url, locals: { getSession }, params, cookies, reque
 		connection_id = response2.data!.id;
 	}
 
-	const mlw = url.searchParams.get('state')?.match(/^mlw(\d+?)mlw/);
-	if (session)
-		throw redirect(302, WEBSITE_URL + (mlw ? `/mellow/server/${mlw[1]}/onboarding?auto_select=${params.id}` : '/settings/account/connections'));
+	const mlw = url.searchParams.get('state')?.match(/^mlw(\d+?)mlw(SKIPmlw)?/);
+	if (session) {
+		if (mlw?.[2]) {
+			handleResponse(await supabase.from('mellow_user_server_connections')
+				.insert({
+					user_id: session.sub,
+					server_id: mlw[1],
+					connection_id
+				})
+			);
+			await fetch('https://local-mellow.hakumi.cafe/signup-finished', {
+				body: handleResponse(await supabase.from('user_connections')
+					.select('sub')
+					.eq('type', UserConnectionType.Discord)
+					.eq('user_id', session.sub)
+					.limit(1)
+					.single()
+				).data!.sub,
+				method: 'POST',
+				headers: { 'x-api-key': MELLOW_API_KEY }
+			});
+		}
+		throw redirect(302, WEBSITE_URL + (mlw ? `/mellow/server/${mlw[1]}/onboarding?done&auto_select=${params.id}` : '/settings/account/connections'));
+	}
 
 	const { state } = await parseQuery(request, KEY_QUERY);
 	const token = await new SignJWT({

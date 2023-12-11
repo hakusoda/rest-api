@@ -38,8 +38,8 @@ export const PATCH = async ({ locals: { getSession }, params: { id }, request })
 		.limit(1)
 		.maybeSingle()
 	);
-	await fetch('https://mellow.hakumi.cafe/signup-finished', {
-		body: `${session.sub}:${response.data?.sub}`,
+	await fetch('https://local-mellow.hakumi.cafe/signup-finished', {
+		body: response.data?.sub,
 		method: 'POST',
 		headers: { 'x-api-key': MELLOW_API_KEY }
 	});
