@@ -2,7 +2,6 @@ import { json } from '@sveltejs/kit';
 
 import { error } from '$lib/response';
 import type { RequestHandler } from './$types';
-import { MellowServerAuditLogType } from '$lib/enums';
 import supabase, { handleResponse } from '$lib/supabase';
 import { MELLOW_SERVER_PROFILE_SYNC_ACTION_PAYLOAD } from '$lib/constants';
 import { parseBody, createMellowServerAuditLog, isUserMemberOfMellowServer } from '$lib/util';
@@ -41,7 +40,7 @@ export const POST = (async ({ locals: { getSession }, params: { id }, request })
 		requirements = response2.data!;
 	}
 	
-	await createMellowServerAuditLog(MellowServerAuditLogType.CreateProfileSyncAction, session.sub, id, {
+	await createMellowServerAuditLog('mellow.server.syncing.action.created', session.sub, id, {
 		name: body.name,
 		type: body.type,
 		metadata: body.metadata,

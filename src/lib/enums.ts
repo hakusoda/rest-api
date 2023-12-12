@@ -69,12 +69,3 @@ export enum MellowProfileSyncActionRequirementsType {
 	MeetAll,
 	MeetOne
 }
-
-export enum MellowServerAuditLogType {
-	CreateServer,
-	CreateProfileSyncAction,
-	UpdateProfileSyncingSettings,
-	DeleteProfileSyncAction,
-	UpdateProfileSyncAction,
-	UpdateLogging
-}

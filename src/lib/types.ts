@@ -32,3 +32,11 @@ export interface UserConnectionCallbackResponse {
 	avatar_url?: string | null
 	website_url?: string | null
 }
+
+export type MellowActionLogItemType =
+	'mellow.server.created' |
+	'mellow.server.syncing.action.created' |
+	'mellow.server.syncing.action.updated' |
+	'mellow.server.syncing.action.deleted' |
+	'mellow.server.syncing.settings.updated' |
+	'mellow.server.discord_logging.updated'

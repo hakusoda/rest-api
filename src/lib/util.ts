@@ -9,10 +9,10 @@ import { decode, encode, decodeMultiple } from 'cbor-x';
 import { error } from './response';
 import { UUID_REGEX } from './constants';
 import { TeamRolePermission } from './enums';
-import type { ApiFeatureFlag } from './enums';
 import supabase, { handleResponse } from './supabase';
+import type { MellowActionLogItemType } from './types';
 import { COSECRV, COSEKEYS, mapCoseAlgToCryptoAlg } from './cose';
-import type { TeamAuditLogType, MellowServerAuditLogType } from './enums';
+import type { ApiFeatureFlag, TeamAuditLogType } from './enums';
 export const isUUID = (uuid: string) => UUID_REGEX.test(uuid);
 export const hasBit = (bits: number, bit: number) => (bits & bit) === bit;
 
@@ -80,7 +80,7 @@ export async function createTeamAuditLog(type: TeamAuditLogType, author_id: stri
 		console.error(error);
 }
 
-export async function createMellowServerAuditLog(type: MellowServerAuditLogType, author_id: string, server_id: string, data?: any, target_link_id?: string) {
+export async function createMellowServerAuditLog(type: MellowActionLogItemType, author_id: string, server_id: string, data?: any, target_link_id?: string) {
 	const { error } = await supabase.from('mellow_server_audit_logs').insert({
 		type,
 		data,

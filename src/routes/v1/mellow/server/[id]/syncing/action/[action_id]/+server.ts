@@ -3,7 +3,6 @@ import type { ZodType } from 'zod';
 
 import { error } from '$lib/response';
 import type { RequestHandler } from './$types';
-import { MellowServerAuditLogType } from '$lib/enums';
 import supabase, { handleResponse } from '$lib/supabase';
 import { MELLOW_SERVER_PROFILE_SYNC_ACTION_PAYLOAD_TRANSFORMER, MELLOW_SERVER_PROFILE_SYNC_ACTION_PAYLOAD_UNTRANSFORMED } from '$lib/constants';
 import { parseBody, createMellowServerAuditLog, isUserMemberOfMellowServer } from '$lib/util';
@@ -31,7 +30,7 @@ export const PATCH = (async ({ locals: { getSession }, params: { id, action_id }
 	let final = {
 		...response.data!,
 		last_edit: {
-			type: MellowServerAuditLogType.UpdateProfileSyncAction,
+			type: '',
 			author: author.data!,
 			created_at: Date.now()
 		}
@@ -76,7 +75,7 @@ export const PATCH = (async ({ locals: { getSession }, params: { id, action_id }
 			final.requirements = [];
 	}
 
-	await createMellowServerAuditLog(MellowServerAuditLogType.UpdateProfileSyncAction, session.sub, id, {
+	await createMellowServerAuditLog('mellow.server.syncing.action.updated', session.sub, id, {
 		name: [response.data!.name, body.name],
 		type: [response.data!.type, body.type],
 		metadata: [response.data!.metadata, body.metadata],
@@ -98,7 +97,7 @@ export const DELETE = (async ({ locals: { getSession }, params: { id, action_id 
 		.select('name');
 	handleResponse(response);
 
-	await createMellowServerAuditLog(MellowServerAuditLogType.DeleteProfileSyncAction, session.sub, id, {
+	await createMellowServerAuditLog('mellow.server.syncing.action.deleted', session.sub, id, {
 		name: response.data![0].name
 	});
 

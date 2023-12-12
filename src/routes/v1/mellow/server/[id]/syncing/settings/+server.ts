@@ -1,9 +1,9 @@
 import { z } from 'zod';
 
 import { error } from '$lib/response';
+import { UserConnectionType } from '$lib/enums';
 import type { RequestHandler } from './$types';
 import supabase, { handleResponse } from '$lib/supabase';
-import { UserConnectionType, MellowServerAuditLogType } from '$lib/enums';
 import { parseBody, createMellowServerAuditLog, isUserMemberOfMellowServer } from '$lib/util';
 
 const PATCH_PAYLOAD = z.object({
@@ -29,7 +29,7 @@ export const PATCH = (async ({ locals: { getSession }, params: { id }, request }
 		.eq('id', id);
 	handleResponse(response2);
 
-	await createMellowServerAuditLog(MellowServerAuditLogType.UpdateProfileSyncingSettings, session.sub, id, {
+	await createMellowServerAuditLog('mellow.server.syncing.settings.updated', session.sub, id, {
 		default_nickname: [response.data!.default_nickname, body.default_nickname],
 		skip_onboarding_to: [response.data!.skip_onboarding_to, body.skip_onboarding_to],
 		allow_forced_syncing: [response.data!.allow_forced_syncing, body.allow_forced_syncing]
