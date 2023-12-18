@@ -17,7 +17,7 @@ const KEY_QUERY = z.object({
 export const GET = (async ({ url, locals: { getSession }, params, cookies, request }) => {
 	const type = await ENUM.parseAsync(parseInt(params.id)).catch(() => { throw error(400, 'invalid_type') });
 	const session = await getSession(false, false).catch(() => null);
-	const { sub, name, username, metadata, avatar_url, website_url } = await USER_CONNECTION_CALLBACKS[type](url);
+	const { sub, name, username, avatar_url, website_url } = await USER_CONNECTION_CALLBACKS[type](url);
 
 	const response = await supabase.from('user_connections')
 		.select('id, user_id')
@@ -46,7 +46,6 @@ export const GET = (async ({ url, locals: { getSession }, params, cookies, reque
 				sub,
 				type,
 				user_id,
-				metadata,
 				username,
 				avatar_url,
 				website_url,

@@ -99,8 +99,8 @@ export const USER_CONNECTION_CALLBACKS: Record<UserConnectionType, (url: URL) =>
 			sub: id,
 			name: global_name || username,
 			username,
-			metadata,
-			avatar_url: avatar ? `https://cdn.discordapp.com/avatars/${id}/${avatar}.${avatar.startsWith('a_') ? 'gif' : 'webp'}?size=256` : null
+			avatar_url: avatar ? `https://cdn.discordapp.com/avatars/${id}/${avatar}.${avatar.startsWith('a_') ? 'gif' : 'webp'}?size=256` : null,
+			website_url: `https://discord.com/users/${id}`
 		};
 	},
 	[UserConnectionType.GitHub]: async (url: URL) => {
@@ -131,9 +131,9 @@ export const USER_CONNECTION_CALLBACKS: Record<UserConnectionType, (url: URL) =>
 		return {
 			sub: id,
 			name,
-			metadata,
 			username: login,
-			avatar_url
+			avatar_url,
+			website_url: metadata.html_url
 		};
 	},
 	[UserConnectionType.Roblox]: async (url: URL) => {
@@ -166,7 +166,6 @@ export const USER_CONNECTION_CALLBACKS: Record<UserConnectionType, (url: URL) =>
 		return {
 			sub,
 			name,
-			metadata,
 			username: preferred_username!,
 			avatar_url: picture,
 			website_url: profile
