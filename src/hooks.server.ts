@@ -4,10 +4,11 @@ import type { Handle } from '@sveltejs/kit';
 
 import { dev } from '$app/environment';
 import { error } from '$lib/response';
-import { JWT_SECRET } from '$lib/constants';
 import { ApiFeatureFlag } from '$lib/enums';
 import type { UserSessionJWT } from '$lib/types';
 import { throwIfFeatureNotEnabled } from '$lib/util';
+import supabase, { handleResponse } from '$lib/supabase';
+import { JWT_SECRET, getMellowServerApiEncryptionKey } from '$lib/constants';
 import { EDGE_CONFIG, KV_REST_API_URL, KV_REST_API_TOKEN, KV_REST_API_READ_ONLY_TOKEN } from '$env/static/private';
 if (dev) {
 	process.env.EDGE_CONFIG = EDGE_CONFIG;
@@ -78,6 +79,41 @@ export const handle = (async ({ event, resolve }) => {
 		}
 
 		return payload;
+	};
+	event.locals.getMellowServer = async () => {
+		const keyHeader = event.request.headers.get('x-api-key');
+		if (!keyHeader)
+			throw error(401, 'unauthorised');
+
+		const [key, iv] = keyHeader.split('-');
+		if (!key || !iv)
+			throw error(400, 'invalid_api_key');
+
+		const decrypted = await crypto.subtle.decrypt(
+			{
+				iv: base64.toArrayBuffer(iv),
+				name: 'AES-GCM'
+			},
+			await getMellowServerApiEncryptionKey(),
+			base64.toArrayBuffer(key)
+		);
+		const [id, timestamp] = new TextDecoder().decode(decrypted).split('\u0143');
+		if (!id || !timestamp)
+			throw error(400, 'invalid_api_key');
+
+		if (event.params.id !== id)
+			throw error(400, 'incorrect_server_id');
+
+		const response = await supabase.from('mellow_servers')
+			.select('*', { head: true, count: 'exact' })
+			.eq('id', id)
+			.eq('api_key_created_at', timestamp);
+		handleResponse(response);
+
+		if (!response.count)
+			throw error(400, 'invalid_api_key');
+
+		return { id };
 	};
 	
 	const response = await resolve(event, {

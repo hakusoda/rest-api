@@ -2,7 +2,7 @@ import { error } from '$lib/response';
 import { processAvatarImage } from '$lib/image';
 import type { RequestHandler } from './$types';
 import supabase, { handleResponse } from '$lib/supabase';
-export const config = { runtime: 'nodejs18.x' };
+export const config = { runtime: 'nodejs20.x' };
 export const PATCH = (async ({ locals: { getSession }, params: { id }, request }) => {
 	const session = await getSession();
 	if (session.sub !== id)

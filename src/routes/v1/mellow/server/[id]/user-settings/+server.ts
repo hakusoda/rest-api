@@ -38,10 +38,13 @@ export const PATCH = async ({ locals: { getSession }, params: { id }, request })
 		.limit(1)
 		.maybeSingle()
 	);
-	await fetch('https://local-mellow.hakumi.cafe/signup-finished', {
-		body: response.data?.sub,
+	await fetch(`https://mellow-internal-api.hakumi.cafe/server/${id}/member/${response.data!.sub}/sync`, {
+		body: '{"is_sign_up":true}',
 		method: 'POST',
-		headers: { 'x-api-key': MELLOW_API_KEY }
+		headers: {
+			'x-api-key': MELLOW_API_KEY,
+			'content-type': 'application/json'
+		}
 	});
 
 	return new Response();

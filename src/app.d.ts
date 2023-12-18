@@ -1,6 +1,6 @@
 import type { Session, SupabaseClient } from '@supabase/supabase-js';
 
-import type { UserSessionJWT } from '$lib/types';
+import type { UserSessionJWT, MellowApiKeyServer } from '$lib/types';
 export interface Database {
 	public: {
 		Views: {}
@@ -14,6 +14,7 @@ declare global {
 		// interface Error {}
 		interface Locals {
 			getSession<T extends boolean = true>(required?: T, verifyDevice?: boolean): Promise<T extends true ? UserSessionJWT : UserSessionJWT | null>
+			getMellowServer(): Promise<MellowApiKeyServer>
 		}
 		// interface PageData {}
 		// interface Platform {}

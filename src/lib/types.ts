@@ -24,6 +24,10 @@ export interface UserSessionJWT {
 	device_public_key: string
 }
 
+export interface MellowApiKeyServer {
+	id: string
+}
+
 export interface UserConnectionCallbackResponse {
 	sub: string
 	name?: string | null
@@ -39,4 +43,5 @@ export type MellowActionLogItemType =
 	'mellow.server.syncing.action.updated' |
 	'mellow.server.syncing.action.deleted' |
 	'mellow.server.syncing.settings.updated' |
-	'mellow.server.discord_logging.updated'
+	'mellow.server.discord_logging.updated' |
+	'mellow.server.api_key.created'
