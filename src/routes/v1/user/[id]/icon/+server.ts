@@ -9,9 +9,9 @@ export const PATCH = (async ({ locals: { getSession }, params: { id }, request }
 		throw error(403, 'forbidden');
 
 	const image = await processAvatarImage(await request.arrayBuffer());
-	const response = await supabase.storage.from('avatars').upload(`/user/${id}.webp`, image, {
+	const response = await supabase.storage.from('avatars').upload(`/user/${id}.${image.format}`, image.data, {
 		upsert: true,
-		contentType: 'image/webp'
+		contentType: `image/${image.format}`
 	});
 	if (response.error) {
 		console.error(response.error);

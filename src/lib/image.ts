@@ -1,5 +1,7 @@
 import { Image, createCanvas } from '@napi-rs/canvas';
-export function processAvatarImage(image: ArrayBuffer) {
+
+export const DEFAULT_IMAGE_ENCODING_FORMAT = 'avif';
+export async function processAvatarImage(image: ArrayBuffer) {
 	const img = new Image();
 	img.src = Buffer.from(image);
 
@@ -13,5 +15,9 @@ export function processAvatarImage(image: ArrayBuffer) {
 	const context = canvas.getContext('2d');
 	context.drawImage(img, -width / 2 + 128, -height / 2 + 128, width, height);
 
-	return canvas.encode('webp', 100);
+	const format = DEFAULT_IMAGE_ENCODING_FORMAT;
+	return {
+		data: await canvas.encode(format, 100),
+		format
+	};
 }

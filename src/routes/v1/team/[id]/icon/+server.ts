@@ -11,9 +11,9 @@ export const PATCH = (async ({ locals: { getSession }, params: { id }, request }
 		throw error(403, 'no_permission');
 
 	const image = await processAvatarImage(await request.arrayBuffer());
-	const response = await supabase.storage.from('avatars').upload(`/team/${id}.webp`, image, {
+	const response = await supabase.storage.from('avatars').upload(`/team/${id}.${image.format}`, image.data, {
 		upsert: true,
-		contentType: 'image/webp'
+		contentType: `image/${image.format}`
 	});
 	if (response.error) {
 		console.error(response.error);
