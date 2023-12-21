@@ -1,7 +1,9 @@
 {
 	"name": "hakumi-rest-api",
 	"type": "module",
-	"version": "1.0.0",
+	"homepage": "https://github.com/hakusoda/rest-api#readme",
+	"repository": "https://github.com/hakusoda/rest-api.git",
+	"version": "0.1.0",
 	"license": "MIT",
 	"scripts": {
 		"dev": "vite dev --port 5174",
@@ -10,6 +12,7 @@
 		"prepare": "svelte-kit sync",
 		"pull-env": "vercel env pull .env.local"
 	},
+	"packageManager": "yarn@4.0.0-rc.51",
 	"devDependencies": {
 		"@sveltejs/adapter-vercel": "^4.0.3",
 		"@sveltejs/kit": "^2.0.4",
