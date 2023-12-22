@@ -42,7 +42,7 @@ export const PATCH = (async ({ locals: { getSession }, params: { id, role_id }, 
 		name: [response.data.name, body.name],
 		position: [response.data.position, body.position],
 		permissions: [response.data.permissions, body.permissions]
-	});
+	}, role_id);
 
 	return new Response();
 }) satisfies RequestHandler;
