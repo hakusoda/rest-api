@@ -6,7 +6,6 @@ import { error } from '$lib/response';
 import { parseQuery } from '$lib/util';
 import { MELLOW_API_KEY } from '$env/static/private';
 import { UserConnectionType } from '$lib/enums';
-import type { RequestHandler } from './$types';
 import supabase, { handleResponse } from '$lib/supabase';
 import { JWT_SECRET, WEBSITE_URL, USER_CONNECTION_CALLBACKS } from '$lib/constants';
 
@@ -14,7 +13,7 @@ const ENUM = z.nativeEnum(UserConnectionType);
 const KEY_QUERY = z.object({
 	state: z.string()
 });
-export const GET = (async ({ url, locals: { getSession }, params, cookies, request }) => {
+export async function GET({ url, locals: { getSession }, params, cookies, request }) {
 	const type = await ENUM.parseAsync(parseInt(params.id)).catch(() => { throw error(400, 'invalid_type') });
 	const session = await getSession(false, false).catch(() => null);
 	const { sub, name, username, avatar_url, website_url } = await USER_CONNECTION_CALLBACKS[type](url);
@@ -99,4 +98,4 @@ export const GET = (async ({ url, locals: { getSession }, params, cookies, reque
 
 	const redirectUri = mlw ? `${WEBSITE_URL}/mellow/server/${mlw[1]}/onboarding` : url.searchParams.get('redirect_uri');
 	throw redirect(302, redirectUri?.startsWith('https://') ? redirectUri : `${WEBSITE_URL}${redirectUri || `/user/${user_id}`}`);
-}) satisfies RequestHandler;
+}

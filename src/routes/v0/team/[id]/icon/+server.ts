@@ -2,10 +2,9 @@ import { error } from '$lib/response';
 import { hasTeamPermissions } from '$lib/util';
 import { TeamRolePermission } from '$lib/enums';
 import { processAvatarImage } from '$lib/image';
-import type { RequestHandler } from './$types';
 import supabase, { handleResponse } from '$lib/supabase';
 export const config = { runtime: 'nodejs20.x' };
-export const PATCH = (async ({ locals: { getSession }, params: { id }, request }) => {
+export async function PATCH({ locals: { getSession }, params: { id }, request }) {
 	const session = await getSession();
 	if (!await hasTeamPermissions(id, session.sub, [TeamRolePermission.ManageTeam]))
 		throw error(403, 'no_permission');
@@ -41,4 +40,4 @@ export const PATCH = (async ({ locals: { getSession }, params: { id }, request }
 	handleResponse(response3);
 
 	return new Response();
-}) satisfies RequestHandler;
+}

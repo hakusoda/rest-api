@@ -6,7 +6,6 @@ import { SignJWT } from 'jose';
 import { decodeMultiple } from 'cbor-x';
 
 import { error } from '$lib/response';
-import type { RequestHandler } from './$types';
 import type { UserAuthSignInData } from '$lib/types';
 import supabase, { handleResponse } from '$lib/supabase';
 import { JWT_SECRET, USERNAME_REGEX } from '$lib/constants';
@@ -22,7 +21,7 @@ const POST_PAYLOAD = z.object({
 	client_data: z.string(),
 	device_public_key: z.string()
 });
-export const POST = (async ({ cookies, request }) => {
+export async function POST({ cookies, request }) {
 	const { id, auth_data, username, challenge, signature, client_data, device_public_key } = await parseBody(request, POST_PAYLOAD);
 
 	const data = await kv.get<UserAuthSignInData>(`auth_signin_${username}`);
@@ -71,4 +70,4 @@ export const POST = (async ({ cookies, request }) => {
 	cookies.set('auth-token', token, { path: '/', domain: '.hakumi.cafe', expires: new Date(Date.now() + 31556926000), sameSite: 'none', httpOnly: false });
 
 	return json({ user_id: data.id });
-}) satisfies RequestHandler;
+}

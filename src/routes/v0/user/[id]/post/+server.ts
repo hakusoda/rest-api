@@ -4,7 +4,6 @@ import { json } from '@sveltejs/kit';
 import { error } from '$lib/response';
 import { parseBody } from '$lib/util';
 import { ApiFeatureFlag } from '$lib/enums';
-import type { RequestHandler } from './$types';
 import { throwIfFeatureNotEnabled } from '$lib/util';
 import supabase, { handleResponse } from '$lib/supabase';
 
@@ -14,7 +13,7 @@ const POST_PAYLOAD = z.object({
 		url: z.string().url().max(200)
 	})).max(2).optional()
 });
-export const POST = (async ({ locals: { getSession }, params: { id }, request }) => {
+export async function POST({ locals: { getSession }, params: { id }, request }) {
 	await throwIfFeatureNotEnabled(ApiFeatureFlag.ProfilePostCreation);
 
 	const session = await getSession();
@@ -45,4 +44,4 @@ export const POST = (async ({ locals: { getSession }, params: { id }, request })
 		...response.data,
 		attachments: attachments ?? []
 	});
-}) satisfies RequestHandler;
+}

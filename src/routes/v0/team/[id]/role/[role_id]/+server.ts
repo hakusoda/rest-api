@@ -2,7 +2,6 @@ import { z } from 'zod';
 
 import { error } from '$lib/response';
 import { TeamRolePermission } from '$lib/enums';
-import type { RequestHandler } from './$types';
 import supabase, { handleResponse } from '$lib/supabase';
 import { parseBody, createTeamAuditLog, hasTeamPermissions } from '$lib/util';
 
@@ -11,7 +10,7 @@ const PATCH_BODY = z.object({
 	position: z.number().int().min(0).max(256).optional(),
 	permissions: z.number().int().optional()
 });
-export const PATCH = (async ({ locals: { getSession }, params: { id, role_id }, request }) => {
+export async function PATCH({ locals: { getSession }, params: { id, role_id }, request }) {
 	const session = await getSession();
 	const member = await hasTeamPermissions(id, session.sub, [TeamRolePermission.ManageRoles]);
 	if (member === null)
@@ -47,4 +46,4 @@ export const PATCH = (async ({ locals: { getSession }, params: { id, role_id }, 
 	}, role_id);
 
 	return new Response();
-}) satisfies RequestHandler;
+}

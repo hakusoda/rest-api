@@ -3,7 +3,6 @@ import { kv } from '@vercel/kv';
 import { json } from '@sveltejs/kit';
 
 import { error } from '$lib/response';
-import type { RequestHandler } from './$types';
 import type { UserAddDeviceData } from '$lib/types';
 import supabase, { handleResponse } from '$lib/supabase';
 import { parseBody, readAttestation, getRequestOrigin } from '$lib/util';
@@ -15,7 +14,7 @@ const POST_PAYLOAD = z.object({
 	attestation: z.string(),
 	platform_version: z.string().optional()
 });
-export const POST = (async ({ locals: { getSession }, request }) => {
+export async function POST({ locals: { getSession }, request }) {
 	const session = await getSession();
 	const { name, challenge, transports, attestation, platform_version } = await parseBody(request, POST_PAYLOAD);
 
@@ -40,4 +39,4 @@ export const POST = (async ({ locals: { getSession }, request }) => {
 	handleResponse(response2);
 
 	return json(response2.data!);
-}) satisfies RequestHandler;
+}

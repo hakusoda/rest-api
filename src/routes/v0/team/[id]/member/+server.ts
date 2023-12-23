@@ -1,8 +1,7 @@
 import { error } from '$lib/response';
 import { isUUID } from '$lib/util';
-import type { RequestHandler } from './$types';
 import supabase, { handleResponse } from '$lib/supabase';
-export const DELETE = (async ({ locals: { getSession }, params: { id } }) => {
+export async function DELETE({ locals: { getSession }, params: { id } }) {
 	const session = await getSession();
 	const response = await supabase.from('teams')
 		.select('id, owner_id')
@@ -21,4 +20,4 @@ export const DELETE = (async ({ locals: { getSession }, params: { id } }) => {
 	handleResponse(response2);
 
 	return new Response();
-}) satisfies RequestHandler;
+}

@@ -5,6 +5,7 @@ import { json } from '@sveltejs/kit';
 import supabase, { handleResponse } from '$lib/supabase';
 import { parseBody, throwIfUserNotInSudo } from '$lib/util';
 import { OAUTH_SCOPES, OAUTH_SCOPE_OPERATIONS } from '$lib/constants';
+
 const POST_PAYLOAD = z.object({
 	scopes: z.array(z.object({
 		type: z.enum(OAUTH_SCOPES),
@@ -13,7 +14,7 @@ const POST_PAYLOAD = z.object({
 	redirect_uri: z.string(),
 	application_id: z.string().uuid()
 });
-export const POST = async ({ locals: { getSession }, request }) => {
+export async function POST({ locals: { getSession }, request }) {
 	const { sub } = await getSession();
 
 	const { scopes, redirect_uri, application_id } = await parseBody(request, POST_PAYLOAD);
@@ -63,4 +64,4 @@ export const POST = async ({ locals: { getSession }, request }) => {
 
 	redirectUri.searchParams.set('code', encodedId);
 	return json({ redirect_uri: redirectUri.href });
-};
+}

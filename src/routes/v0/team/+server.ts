@@ -2,14 +2,13 @@ import { z } from 'zod';
 import { json } from '@sveltejs/kit';
 
 import { error } from '$lib/response';
-import type { RequestHandler } from './$types';
 import supabase, { handleResponse } from '$lib/supabase';
 import { ApiFeatureFlag, TeamRolePermission } from '$lib/enums';
 import { parseBody, createTeamAuditLog, throwIfFeatureNotEnabled } from '$lib/util';
 const POST_BODY = z.object({
 	display_name: z.string().min(3).max(20)
 });
-export const POST = (async ({ locals: { getSession }, request }) => {
+export async function POST({ locals: { getSession }, request }) {
 	await throwIfFeatureNotEnabled(ApiFeatureFlag.TeamCreation);
 
 	const session = await getSession();
@@ -65,4 +64,4 @@ export const POST = (async ({ locals: { getSession }, request }) => {
 	});
 
 	return json(response.data);
-}) satisfies RequestHandler;
+}

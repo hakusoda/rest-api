@@ -5,14 +5,13 @@ import { SignJWT } from 'jose';
 import { error } from '$lib/response';
 import { parseBody } from '$lib/util';
 import { JWT_SECRET } from '$lib/constants';
-import type { RequestHandler } from './$types';
 import supabase, { handleResponse } from '$lib/supabase';
 const POST_PAYLOAD = z.object({
 	code: z.string(),
 	application_id: z.string().uuid(),
 	application_secret: z.string()
 });
-export const POST = (async ({ request }) => {
+export async function POST({ request }) {
 	const { code, application_id, application_secret } = await parseBody(request, POST_PAYLOAD);
 
 	const response = await supabase.from('applications')
@@ -44,4 +43,4 @@ export const POST = (async ({ request }) => {
 		.sign(JWT_SECRET);
 
 	return json({ access_token });
-}) satisfies RequestHandler;
+}

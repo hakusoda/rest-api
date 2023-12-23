@@ -1,8 +1,7 @@
 import { ApiFeatureFlag } from '$lib/enums';
-import type { RequestHandler } from './$types';
 import { throwIfFeatureNotEnabled } from '$lib/util';
 import supabase, { handleResponse } from '$lib/supabase';
-export const POST = (async ({ locals: { getSession }, params: { post_id } }) => {
+export async function POST({ locals: { getSession }, params: { post_id } }) {
 	await throwIfFeatureNotEnabled(ApiFeatureFlag.ProfilePostLikes);
 
 	const session = await getSession();
@@ -14,9 +13,9 @@ export const POST = (async ({ locals: { getSession }, params: { post_id } }) => 
 	handleResponse(response);
 
 	return new Response();
-}) satisfies RequestHandler;
+}
 
-export const DELETE = (async ({ locals: { getSession }, params: { post_id } }) => {
+export async function DELETE({ locals: { getSession }, params: { post_id } }) {
 	await throwIfFeatureNotEnabled(ApiFeatureFlag.ProfilePostLikes);
 
 	const session = await getSession();
@@ -27,4 +26,4 @@ export const DELETE = (async ({ locals: { getSession }, params: { post_id } }) =
 	handleResponse(response);
 
 	return new Response();
-}) satisfies RequestHandler;
+}

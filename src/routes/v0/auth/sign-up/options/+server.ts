@@ -5,14 +5,13 @@ import { json } from '@sveltejs/kit';
 
 import { error } from '$lib/response';
 import { parseBody } from '$lib/util';
-import type { RequestHandler } from './$types';
 import supabase, { handleResponse } from '$lib/supabase';
 import { USERNAME_REGEX, RELYING_PARTY_ID } from '$lib/constants';
 
 const POST_PAYLOAD = z.object({
 	username: z.string().min(3).max(20).regex(USERNAME_REGEX)
 });
-export const POST = (async ({ request }) => {
+export async function POST({ request }) {
 	const { username } = await parseBody(request, POST_PAYLOAD);
 
 	const response = await supabase.from('users')
@@ -55,4 +54,4 @@ export const POST = (async ({ request }) => {
 	});
 
 	return json(options);
-}) satisfies RequestHandler;
+}

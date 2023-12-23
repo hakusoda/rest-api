@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 import { parseBody } from '$lib/util';
 import { MELLOW_API_KEY } from '$env/static/private';
-import { UserConnectionType } from '$lib/enums.js';
+import { UserConnectionType } from '$lib/enums';
 import supabase, { handleResponse } from '$lib/supabase';
 
 const PATCH_PAYLOAD = z.object({
@@ -10,7 +10,7 @@ const PATCH_PAYLOAD = z.object({
 		id: z.string().uuid()
 	}))
 });
-export const PATCH = async ({ locals: { getSession }, params: { id }, request }) => {
+export async function PATCH({ locals: { getSession }, params: { id }, request }) {
 	const session = await getSession();
 
 	const body = await parseBody(request, PATCH_PAYLOAD);

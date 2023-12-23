@@ -3,8 +3,7 @@ import base64 from '@hexagon/base64';
 import { json } from '@sveltejs/kit';
 
 import { RELYING_PARTY_ID } from '$lib/constants';
-import type { RequestHandler } from './$types';
-export const GET = (async ({ locals: { getSession } }) => {
+export async function GET({ locals: { getSession } }) {
 	const session = await getSession();
 	const challenge = new Uint32Array(32);
 	crypto.getRandomValues(challenge);
@@ -32,4 +31,4 @@ export const GET = (async ({ locals: { getSession } }) => {
 	await kv.set(`auth_adddevice_${session.sub}`, { challenge: encodedChallenge });
 
 	return json(options);
-}) satisfies RequestHandler;
+}

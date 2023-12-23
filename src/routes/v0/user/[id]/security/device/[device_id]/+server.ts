@@ -1,9 +1,8 @@
 import { error } from '$lib/response';
 import { ApiFeatureFlag } from '$lib/enums';
-import type { RequestHandler } from './$types';
 import supabase, { handleResponse } from '$lib/supabase';
 import { throwIfUserNotInSudo, throwIfFeatureNotEnabled } from '$lib/util';
-export const DELETE = (async ({ locals: { getSession }, params: { id, device_id } }) => {
+export async function DELETE({ locals: { getSession }, params: { id, device_id } }) {
 	await throwIfFeatureNotEnabled(ApiFeatureFlag.SecurityKeys);
 
 	const { sub } = await getSession();
@@ -20,4 +19,4 @@ export const DELETE = (async ({ locals: { getSession }, params: { id, device_id 
 	if (!response.count)
 		throw error(404, 'security_device_not_found');
 	return new Response();
-}) satisfies RequestHandler;
+}

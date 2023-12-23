@@ -1,7 +1,6 @@
 import { error } from '$lib/response';
-import type { RequestHandler } from './$types';
 import supabase, { handleResponse } from '$lib/supabase';
-export const DELETE = (async ({ locals: { getSession }, params: { id, connection_id } }) => {
+export async function DELETE({ locals: { getSession }, params: { id, connection_id } }) {
 	const session = await getSession();
 	if (session.sub !== id)
 		throw error(403, 'forbidden');
@@ -15,4 +14,4 @@ export const DELETE = (async ({ locals: { getSession }, params: { id, connection
 	if (!response.count)
 		throw error(404, 'user_connection_not_found');
 	return new Response();
-}) satisfies RequestHandler;
+}

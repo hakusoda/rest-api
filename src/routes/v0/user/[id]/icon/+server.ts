@@ -1,9 +1,9 @@
 import { error } from '$lib/response';
 import { processAvatarImage } from '$lib/image';
-import type { RequestHandler } from './$types';
 import supabase, { handleResponse } from '$lib/supabase';
+
 export const config = { runtime: 'nodejs20.x' };
-export const PATCH = (async ({ locals: { getSession }, params: { id }, request }) => {
+export async function PATCH({ locals: { getSession }, params: { id }, request }) {
 	const session = await getSession();
 	if (session.sub !== id)
 		throw error(403, 'forbidden');
@@ -39,4 +39,4 @@ export const PATCH = (async ({ locals: { getSession }, params: { id }, request }
 	handleResponse(response3);
 
 	return new Response();
-}) satisfies RequestHandler;
+}

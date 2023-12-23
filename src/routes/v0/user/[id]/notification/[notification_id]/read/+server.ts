@@ -1,8 +1,7 @@
 import { error } from '$lib/response';
-import type { RequestHandler } from './$types';
 import { UserNotificationState } from '$lib/enums';
 import supabase, { handleResponse } from '$lib/supabase';
-export const POST = (async ({ locals: { getSession }, params: { id, notification_id } }) => {
+export async function POST({ locals: { getSession }, params: { id, notification_id } }) {
 	const session = await getSession();
 	if (session.sub !== id)
 		throw error(403, 'forbidden');
@@ -14,4 +13,4 @@ export const POST = (async ({ locals: { getSession }, params: { id, notification
 	handleResponse(response);
 
 	return new Response();
-}) satisfies RequestHandler;
+}

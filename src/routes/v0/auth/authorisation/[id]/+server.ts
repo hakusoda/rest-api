@@ -1,6 +1,6 @@
 import { throwIfUserNotInSudo } from '$lib/util';
 import supabase, { handleResponse } from '$lib/supabase';
-export const DELETE = async ({ locals: { getSession }, params: { id } }) => {
+export async function DELETE({ locals: { getSession }, params: { id } }) {
 	const { sub } = await getSession();
 	await throwIfUserNotInSudo(sub);
 
@@ -11,4 +11,4 @@ export const DELETE = async ({ locals: { getSession }, params: { id } }) => {
 	handleResponse(response);
 
 	return new Response();
-};
+}

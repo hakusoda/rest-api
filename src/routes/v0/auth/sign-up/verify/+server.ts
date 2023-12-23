@@ -4,7 +4,6 @@ import { json } from '@sveltejs/kit';
 import { SignJWT } from 'jose';
 
 import { error } from '$lib/response';
-import type { RequestHandler } from './$types';
 import type { UserAuthSignUpData } from '$lib/types';
 import supabase, { handleResponse } from '$lib/supabase';
 import { JWT_SECRET, USERNAME_REGEX } from '$lib/constants';
@@ -18,7 +17,7 @@ const POST_PAYLOAD = z.object({
 	platform_version: z.string().optional(),
 	device_public_key: z.string()
 });
-export const POST = (async ({ cookies, request }) => {
+export async function POST({ cookies, request }) {
 	const { username, challenge, transports, attestation, platform_version, device_public_key } = await parseBody(request, POST_PAYLOAD);
 
 	const kvKey = `auth_signup_${username}`;
@@ -54,4 +53,4 @@ export const POST = (async ({ cookies, request }) => {
 
 	await kv.del(kvKey);
 	return json({ user_id: data.id });
-}) satisfies RequestHandler;
+}

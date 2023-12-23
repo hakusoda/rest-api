@@ -1,9 +1,8 @@
 import { json } from '@sveltejs/kit';
 
 import { error } from '$lib/response';
-import type { RequestHandler } from './$types';
 import supabase, { handleResponse } from '$lib/supabase';
-export const GET = (async ({ locals: { getSession }, params: { id } }) => {
+export async function GET({ locals: { getSession }, params: { id } }) {
 	const session = await getSession();
 	if (session.sub !== id)
 		throw error(403, 'forbidden');
@@ -28,4 +27,4 @@ export const GET = (async ({ locals: { getSession }, params: { id } }) => {
 			(target_team.member_count as any) = target_team.member_count[0].count;
 
 	return json(response.data!);
-}) satisfies RequestHandler;
+}

@@ -1,7 +1,6 @@
 import { error } from '$lib/response';
-import type { RequestHandler } from './$types';
 import supabase, { handleResponse } from '$lib/supabase';
-export const POST = (async ({ locals: { getSession }, params: { id } }) => {
+export async function POST({ locals: { getSession }, params: { id } }) {
 	const session = await getSession();
 	if (session.sub === id)
 		throw error(400, 'invalid_body');
@@ -14,13 +13,13 @@ export const POST = (async ({ locals: { getSession }, params: { id } }) => {
 	handleResponse(response);
 
 	return new Response();
-}) satisfies RequestHandler;
+}
 
-export const DELETE = (async ({ locals: { getSession }, params: { id } }) => {
+export async function DELETE({ locals: { getSession }, params: { id } }) {
 	const session = await getSession();
 	if (session.sub === id)
 		throw error(400, 'invalid_body');
-3
+
 	const response = await supabase.from('user_followers')
 		.delete()
 		.eq('user_id', session.sub)
@@ -28,4 +27,4 @@ export const DELETE = (async ({ locals: { getSession }, params: { id } }) => {
 	handleResponse(response);
 
 	return new Response();
-}) satisfies RequestHandler;
+}

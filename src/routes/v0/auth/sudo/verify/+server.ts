@@ -4,7 +4,6 @@ import base64 from '@hexagon/base64';
 import { decodeMultiple } from 'cbor-x';
 
 import { error } from '$lib/response';
-import type { RequestHandler } from './$types';
 import type { UserAuthSignInData } from '$lib/types';
 import supabase, { handleResponse } from '$lib/supabase';
 import { isCOSEPublicKeyEC2, isCOSEPublicKeyOKP, isCOSEPublicKeyRSA } from '$lib/cose';
@@ -17,7 +16,7 @@ const POST_PAYLOAD = z.object({
 	signature: z.string(),
 	clientData: z.string()
 });
-export const POST = (async ({ locals: { getSession }, request }) => {
+export async function POST({ locals: { getSession }, request }) {
 	const { sub } = await getSession();
 	const { id, authData, challenge, signature, clientData } = await parseBody(request, POST_PAYLOAD);
 
@@ -66,4 +65,4 @@ export const POST = (async ({ locals: { getSession }, request }) => {
 	handleResponse(response2);
 
 	return new Response();
-}) satisfies RequestHandler;
+}

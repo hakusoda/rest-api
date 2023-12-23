@@ -2,11 +2,10 @@ import { json } from '@sveltejs/kit';
 import type { ZodType } from 'zod';
 
 import { error } from '$lib/response';
-import type { RequestHandler } from './$types';
 import supabase, { handleResponse } from '$lib/supabase';
-import { MELLOW_SERVER_PROFILE_SYNC_ACTION_PAYLOAD_TRANSFORMER, MELLOW_SERVER_PROFILE_SYNC_ACTION_PAYLOAD_UNTRANSFORMED } from '$lib/constants';
 import { parseBody, createMellowServerAuditLog, isUserMemberOfMellowServer } from '$lib/util';
-export const PATCH = (async ({ locals: { getSession }, params: { id, action_id }, request }) => {
+import { MELLOW_SERVER_PROFILE_SYNC_ACTION_PAYLOAD_TRANSFORMER, MELLOW_SERVER_PROFILE_SYNC_ACTION_PAYLOAD_UNTRANSFORMED } from '$lib/constants';
+export async function PATCH({ locals: { getSession }, params: { id, action_id }, request }) {
 	const session = await getSession();
 	if (!await isUserMemberOfMellowServer(session.sub, id))
 		throw error(403, 'no_permission');
@@ -84,8 +83,9 @@ export const PATCH = (async ({ locals: { getSession }, params: { id, action_id }
 	}, action_id);
 
 	return json(final);
-}) satisfies RequestHandler;
-export const DELETE = (async ({ locals: { getSession }, params: { id, action_id } }) => {
+}
+
+export async function DELETE({ locals: { getSession }, params: { id, action_id } }) {
 	const session = await getSession();
 	if (!await isUserMemberOfMellowServer(session.sub, id))
 		throw error(403, 'no_permission');
@@ -102,4 +102,4 @@ export const DELETE = (async ({ locals: { getSession }, params: { id, action_id 
 	});
 
 	return new Response();
-}) satisfies RequestHandler;
+}

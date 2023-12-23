@@ -3,10 +3,9 @@ import { json } from '@sveltejs/kit';
 
 import { error } from '$lib/response';
 import { TeamRolePermission } from '$lib/enums';
-import type { RequestHandler } from './$types';
 import supabase, { handleResponse } from '$lib/supabase';
 import { isUUID, parseBody, hasTeamPermissions } from '$lib/util';
-export const GET = (async ({ params: { id } }) => {
+export async function GET({ params: { id } }) {
 	const response = await supabase.from('teams')
 		.select<string, {
 			id: string
@@ -46,7 +45,7 @@ export const GET = (async ({ params: { id } }) => {
 			joined_at: member.joined_at
 		}))
 	});
-}) satisfies RequestHandler;
+}
 
 const PATCH_BODY = z.object({
 	bio: z.string().max(200).nullable().optional(),
@@ -54,7 +53,7 @@ const PATCH_BODY = z.object({
 	website_url: z.string().url().max(50).nullable().optional(),
 	display_name: z.string().min(3).max(20).optional()
 });
-export const PATCH = (async ({ locals: { getSession }, params: { id }, request }) => {
+export async function PATCH({ locals: { getSession }, params: { id }, request }) {
 	const session = await getSession();
 	if (!await hasTeamPermissions(id, session.sub, [TeamRolePermission.ManageTeam]))
 		throw error(403, 'no_permission');
@@ -69,4 +68,4 @@ export const PATCH = (async ({ locals: { getSession }, params: { id }, request }
 	handleResponse(response);
 
 	return new Response();
-}) satisfies RequestHandler;
+}

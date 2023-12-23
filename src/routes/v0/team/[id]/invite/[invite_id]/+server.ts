@@ -1,8 +1,6 @@
 import { error } from '$lib/response';
-import type { RequestHandler } from './$types';
 import supabase, { handleResponse } from '$lib/supabase';
-
-export const PATCH = (async ({ locals: { getSession }, params: { id, invite_id } }) => {
+export async function PATCH({ locals: { getSession }, params: { id, invite_id } }) {
 	const session = await getSession();
 	const response = await supabase.from('team_invites')
 		.delete()
@@ -27,8 +25,9 @@ export const PATCH = (async ({ locals: { getSession }, params: { id, invite_id }
 	handleResponse(response3);
 
 	return new Response();
-}) satisfies RequestHandler;
-export const DELETE = (async ({ locals: { getSession }, params: { id, invite_id } }) => {
+}
+
+export async function DELETE({ locals: { getSession }, params: { id, invite_id } }) {
 	const session = await getSession();
 	const response = await supabase.from('team_invites')
 		.delete()
@@ -38,4 +37,4 @@ export const DELETE = (async ({ locals: { getSession }, params: { id, invite_id 
 	handleResponse(response);
 
 	return new Response();
-}) satisfies RequestHandler;
+}

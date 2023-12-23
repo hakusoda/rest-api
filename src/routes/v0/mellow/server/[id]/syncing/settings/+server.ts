@@ -2,7 +2,6 @@ import { z } from 'zod';
 
 import { error } from '$lib/response';
 import { UserConnectionType } from '$lib/enums';
-import type { RequestHandler } from './$types';
 import supabase, { handleResponse } from '$lib/supabase';
 import { parseBody, createMellowServerAuditLog, isUserMemberOfMellowServer } from '$lib/util';
 
@@ -11,7 +10,7 @@ const PATCH_PAYLOAD = z.object({
 	skip_onboarding_to: z.nativeEnum(UserConnectionType).nullable().optional(),
 	allow_forced_syncing: z.boolean().optional()
 });
-export const PATCH = (async ({ locals: { getSession }, params: { id }, request }) => {
+export async function PATCH({ locals: { getSession }, params: { id }, request }) {
 	const session = await getSession();
 	if (!await isUserMemberOfMellowServer(session.sub, id))
 		throw error(403, 'no_permission');
@@ -36,4 +35,4 @@ export const PATCH = (async ({ locals: { getSession }, params: { id }, request }
 	});
 
 	return new Response();
-}) satisfies RequestHandler;
+}

@@ -1,11 +1,10 @@
 import { json } from '@sveltejs/kit';
 
 import { error } from '$lib/response';
-import type { RequestHandler } from './$types';
 import supabase, { handleResponse } from '$lib/supabase';
 import { MELLOW_SERVER_PROFILE_SYNC_ACTION_PAYLOAD } from '$lib/constants';
 import { parseBody, createMellowServerAuditLog, isUserMemberOfMellowServer } from '$lib/util';
-export const POST = (async ({ locals: { getSession }, params: { id }, request }) => {
+export async function POST({ locals: { getSession }, params: { id }, request }) {
 	const session = await getSession();
 	if (isNaN(parseInt(id)))
 		throw error(400, 'invalid_id');
@@ -52,4 +51,4 @@ export const POST = (async ({ locals: { getSession }, params: { id }, request })
 		...response.data,
 		requirements
 	});
-}) satisfies RequestHandler;
+}

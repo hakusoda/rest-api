@@ -3,9 +3,8 @@ import base64 from '@hexagon/base64';
 import { json } from '@sveltejs/kit';
 
 import { RELYING_PARTY_ID } from '$lib/constants';
-import type { RequestHandler } from './$types';
 import supabase, { handleResponse } from '$lib/supabase';
-export const GET = (async ({ locals: { getSession } }) => {
+export async function GET({ locals: { getSession } }) {
 	const { sub } = await getSession();
 	const response = await supabase.from('users')
 		.select('devices:user_devices ( id, public_key, transports )')
@@ -37,4 +36,4 @@ export const GET = (async ({ locals: { getSession } }) => {
 	});
 
 	return json(options);
-}) satisfies RequestHandler;
+}
