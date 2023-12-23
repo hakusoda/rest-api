@@ -46,7 +46,7 @@ export const PATCH = (async ({ locals: { getSession }, params: { id, user_id }, 
 
 	await createTeamAuditLog('team.member.updated', session.sub, id, {
 		role_id: [response.data.role_id, body.role_id]
-	});
+	}, undefined, user_id);
 
 	return new Response();
 }) satisfies RequestHandler;
