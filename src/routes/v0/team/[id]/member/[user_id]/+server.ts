@@ -1,9 +1,9 @@
 import { z } from 'zod';
 
 import { error } from '$lib/response';
+import { TeamRolePermission } from '$lib/enums';
 import type { RequestHandler } from './$types';
 import supabase, { handleResponse } from '$lib/supabase';
-import { TeamAuditLogType, TeamRolePermission } from '$lib/enums';
 import { parseBody, createTeamAuditLog, hasTeamPermissions } from '$lib/util';
 
 const PATCH_BODY = z.object({
@@ -44,7 +44,7 @@ export const PATCH = (async ({ locals: { getSession }, params: { id, user_id }, 
 		.eq('user_id', user_id);
 	handleResponse(response3);
 
-	await createTeamAuditLog(TeamAuditLogType.UpdateMember, session.sub, id, {
+	await createTeamAuditLog('team.member.updated', session.sub, id, {
 		role_id: [response.data.role_id, body.role_id]
 	});
 

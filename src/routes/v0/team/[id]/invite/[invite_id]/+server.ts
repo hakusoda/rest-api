@@ -1,10 +1,6 @@
-import { z } from 'zod';
-
 import { error } from '$lib/response';
 import type { RequestHandler } from './$types';
 import supabase, { handleResponse } from '$lib/supabase';
-import { TeamAuditLogType, TeamRolePermission } from '$lib/enums';
-import { hasBit, parseBody, createTeamAuditLog } from '$lib/util';
 
 export const PATCH = (async ({ locals: { getSession }, params: { id, invite_id } }) => {
 	const session = await getSession();

@@ -9,10 +9,10 @@ import { decode, encode, decodeMultiple } from 'cbor-x';
 import { error } from './response';
 import { UUID_REGEX } from './constants';
 import { TeamRolePermission } from './enums';
+import type { ApiFeatureFlag } from './enums';
 import supabase, { handleResponse } from './supabase';
-import type { MellowActionLogItemType } from './types';
 import { COSECRV, COSEKEYS, mapCoseAlgToCryptoAlg } from './cose';
-import type { ApiFeatureFlag, TeamAuditLogType } from './enums';
+import type { TeamActionLogType, MellowActionLogItemType } from './types';
 export const isUUID = (uuid: string) => UUID_REGEX.test(uuid);
 export const hasBit = (bits: number, bit: number) => (bits & bit) === bit;
 
@@ -36,38 +36,39 @@ export async function hasTeamPermissions(teamId: string, userId: string, permiss
 	const response = await supabase.from('team_members')
 		.select<string, {
 			role: {
+				position: number
 				permissions: number
 			} | null
 			team: {
 				owner_id: string | null
 			}
-		}>('role:team_roles ( permissions ), team:teams ( owner_id )')
+		}>('role:team_roles ( position, permissions ), team:teams ( owner_id )')
 		.eq('user_id', userId)
 		.eq('team_id', teamId)
 		.limit(1)
 		.maybeSingle();
 	if (response.error) {
 		console.error(response.error);
-		return false;
+		return null;
 	}
 
 	if (!response.data)
-		return false;
+		return null;
 	if (userId === response.data.team.owner_id)
-		return true;
+		return response.data;
 
 	if (!response.data.role)
 		return false;
 
 	if (hasBit(response.data.role.permissions, TeamRolePermission.Administrator))
-		return true;
+		return response.data;
 	for (const bit of permissions)
 		if (!hasBit(response.data.role.permissions, bit))
 			return false;
-	return true;
+	return response.data;
 }
 
-export async function createTeamAuditLog(type: TeamAuditLogType, author_id: string, team_id: string, data?: any, target_role_id?: string, target_user_id?: string) {
+export async function createTeamAuditLog(type: TeamActionLogType, author_id: string, team_id: string, data?: any, target_role_id?: string, target_user_id?: string) {
 	const { error } = await supabase.from('team_audit_logs').insert({
 		type,
 		data,

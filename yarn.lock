@@ -748,9 +748,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sveltejs/kit@npm:^2.0.4":
-  version: 2.0.4
-  resolution: "@sveltejs/kit@npm:2.0.4"
+"@sveltejs/kit@npm:^2.0.6":
+  version: 2.0.6
+  resolution: "@sveltejs/kit@npm:2.0.6"
   dependencies:
     "@types/cookie": "npm:^0.6.0"
     cookie: "npm:^0.6.0"
@@ -758,10 +758,10 @@ __metadata:
     esm-env: "npm:^1.0.0"
     kleur: "npm:^4.1.5"
     magic-string: "npm:^0.30.5"
-    mrmime: "npm:^1.0.1"
+    mrmime: "npm:^2.0.0"
     sade: "npm:^1.8.1"
     set-cookie-parser: "npm:^2.6.0"
-    sirv: "npm:^2.0.3"
+    sirv: "npm:^2.0.4"
     tiny-glob: "npm:^0.2.9"
   peerDependencies:
     "@sveltejs/vite-plugin-svelte": ^3.0.0
@@ -769,7 +769,7 @@ __metadata:
     vite: ^5.0.3
   bin:
     svelte-kit: svelte-kit.js
-  checksum: a71464ebcc82c3b3317e1b7aa130748afafa8371103e07fa2d20253b5b06c6d1e2fd4d8ab1a404cc5fcdf189192a08cea8461a52350819fc8909cbed7ee1b04b
+  checksum: 6bc9a36bc12649c0496c71663b1e10d6146b6d18eb433db7d77b23b040d5e4bfc5bed09ff246a6674c63920e34e297476bb6636e7eefa8120f525415ecb86f47
   languageName: node
   linkType: hard
 
@@ -2559,7 +2559,7 @@ __metadata:
     "@peculiar/asn1-schema": "npm:^2.3.8"
     "@supabase/supabase-js": "npm:^2.39.1"
     "@sveltejs/adapter-vercel": "npm:^4.0.3"
-    "@sveltejs/kit": "npm:^2.0.4"
+    "@sveltejs/kit": "npm:^2.0.6"
     "@sveltejs/vite-plugin-svelte": "npm:^3.0.1"
     "@types/ua-parser-js": "npm:^0.7.39"
     "@vercel/edge-config": "npm:^0.4.1"
@@ -3160,13 +3160,6 @@ __metadata:
   version: 1.2.0
   resolution: "mri@npm:1.2.0"
   checksum: a3d32379c2554cf7351db6237ddc18dc9e54e4214953f3da105b97dc3babe0deb3ffe99cf409b38ea47cc29f9430561ba6b53b24ab8f9ce97a4b50409e4a50e7
-  languageName: node
-  linkType: hard
-
-"mrmime@npm:^1.0.1":
-  version: 1.0.1
-  resolution: "mrmime@npm:1.0.1"
-  checksum: ab071441da76fd23b3b0d1823d77aacf8679d379a4a94cacd83e487d3d906763b277f3203a594c613602e31ab5209c26a8119b0477c4541ef8555b293a9db6d3
   languageName: node
   linkType: hard
 
@@ -3857,7 +3850,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sirv@npm:^2.0.3":
+"sirv@npm:^2.0.4":
   version: 2.0.4
   resolution: "sirv@npm:2.0.4"
   dependencies:

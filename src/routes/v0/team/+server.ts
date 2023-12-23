@@ -4,7 +4,7 @@ import { json } from '@sveltejs/kit';
 import { error } from '$lib/response';
 import type { RequestHandler } from './$types';
 import supabase, { handleResponse } from '$lib/supabase';
-import { ApiFeatureFlag, TeamAuditLogType, TeamRolePermission } from '$lib/enums';
+import { ApiFeatureFlag, TeamRolePermission } from '$lib/enums';
 import { parseBody, createTeamAuditLog, throwIfFeatureNotEnabled } from '$lib/util';
 const POST_BODY = z.object({
 	display_name: z.string().min(3).max(20)
@@ -59,7 +59,7 @@ export const POST = (async ({ locals: { getSession }, request }) => {
 	});
 	handleResponse(response3);
 
-	await createTeamAuditLog(TeamAuditLogType.CreateTeam, session.sub, response.data.id, {
+	await createTeamAuditLog('team.created', session.sub, response.data.id, {
 		name,
 		display_name: body.display_name
 	});

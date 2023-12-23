@@ -36,6 +36,17 @@ export interface UserConnectionCallbackResponse {
 	website_url?: string | null
 }
 
+export type TeamActionLogType =
+	'team.created' |
+	'team.renamed' |
+	'team.avatar.updated' |
+	'team.public_profile.updated' |
+	'team.role.created' |
+	'team.role.updated' |
+	'team.role.deleted' |
+	'team.member.updated' |
+	'team.member_invitation.created'
+
 export type MellowActionLogItemType =
 	'mellow.server.created' |
 	'mellow.server.syncing.action.created' |

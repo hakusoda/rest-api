@@ -20,22 +20,6 @@ export enum UserConnectionType {
 	Roblox
 }
 
-export enum TeamAuditLogType {
-	CreateTeam,
-	RenameTeam,
-	UpdateAvatar,
-	UpdateProfile,
-	CreateProject,
-	UpdateProject,
-	UpdateProjectAvatar,
-	UpdateProjectBanner,
-	CreateRole,
-	UpdateRole,
-	DeleteRole,
-	UpdateMember,
-	InviteUser
-}
-
 export enum TeamRolePermission {
 	None,
 	ManageTeam = 1 << 0,
