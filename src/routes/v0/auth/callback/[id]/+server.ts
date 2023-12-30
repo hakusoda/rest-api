@@ -58,7 +58,7 @@ export async function GET({ url, locals: { getSession }, params, cookies, reques
 		connection_id = response2.data!.id;
 	}
 
-	const mlw = url.searchParams.get('state')?.match(/^mlw(\d+?)mlw(SKIPmlw)?/);
+	const mlw = url.searchParams.get('state')?.match(/^mlw(\d+?)mlw(SKIPmlw)?(SETUPmlws)?/);
 	if (session) {
 		if (mlw?.[2]) {
 			handleResponse(await supabase.from('mellow_user_server_connections')
@@ -80,7 +80,7 @@ export async function GET({ url, locals: { getSession }, params, cookies, reques
 				headers: { 'x-api-key': MELLOW_API_KEY }
 			});
 		}
-		throw redirect(302, WEBSITE_URL + (mlw ? `/mellow/server/${mlw[1]}/onboarding?done&auto_select=${params.id}` : '/settings/account/connections'));
+		throw redirect(302, WEBSITE_URL + (mlw ? mlw[3] ? `/mellow/server/${mlw[1]}` : `/mellow/server/${mlw[1]}/onboarding?done&auto_select=${params.id}` : '/settings/account/connections'));
 	}
 
 	const { state } = await parseQuery(request, KEY_QUERY);
