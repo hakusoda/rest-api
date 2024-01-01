@@ -13,7 +13,8 @@ export async function PATCH({ locals: { getSession }, params: { id, user_id }, r
 	if (!await hasTeamPermissions(id, session.sub, [TeamRolePermission.ManageMembers]))
 		throw error(403, 'no_permission');
 
-	const response = await supabase.from('team_members').select('role_id')
+	const response = await supabase.from('team_members')
+		.select('role_id')
 		.eq('team_id', id)
 		.eq('user_id', user_id)
 		.limit(1)
@@ -46,6 +47,22 @@ export async function PATCH({ locals: { getSession }, params: { id, user_id }, r
 	await createTeamAuditLog('team.member.updated', session.sub, id, {
 		role_id: [response.data.role_id, body.role_id]
 	}, undefined, user_id);
+
+	return new Response();
+}
+
+export async function DELETE({ locals: { getSession }, params: { id, user_id } }) {
+	const session = await getSession();
+	if (!await hasTeamPermissions(id, session.sub, [TeamRolePermission.ManageMembers]))
+		throw error(403, 'no_permission');
+
+	const response = await supabase.from('team_members')
+		.delete()
+		.eq('team_id', id)
+		.eq('user_id', user_id);
+	handleResponse(response);
+
+	await createTeamAuditLog('team.member.removed', session.sub, id, undefined, undefined, user_id);
 
 	return new Response();
 }
