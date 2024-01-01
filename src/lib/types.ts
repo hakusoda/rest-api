@@ -45,7 +45,8 @@ export type TeamActionLogType =
 	'team.role.updated' |
 	'team.role.deleted' |
 	'team.member.updated' |
-	'team.member_invitation.created'
+	'team.member_invitation.created' |
+	'team.mellow_server.transferred.to_here'
 
 export type MellowActionLogItemType =
 	'mellow.server.created' |
@@ -54,4 +55,5 @@ export type MellowActionLogItemType =
 	'mellow.server.syncing.action.deleted' |
 	'mellow.server.syncing.settings.updated' |
 	'mellow.server.discord_logging.updated' |
-	'mellow.server.api_key.created'
+	'mellow.server.api_key.created' |
+	'mellow.server.ownership.changed'

@@ -68,14 +68,15 @@ export async function hasTeamPermissions(teamId: string, userId: string, permiss
 	return response.data;
 }
 
-export async function createTeamAuditLog(type: TeamActionLogType, author_id: string, team_id: string, data?: any, target_role_id?: string, target_user_id?: string) {
+export async function createTeamAuditLog(type: TeamActionLogType, author_id: string, team_id: string, data?: any, target_role_id?: string, target_user_id?: string, target_mellow_server_id?: string) {
 	const { error } = await supabase.from('team_audit_logs').insert({
 		type,
 		data,
 		team_id,
 		author_id,
 		target_role_id,
-		target_user_id
+		target_user_id,
+		target_mellow_server_id
 	});
 	if (error)
 		console.error(error);
