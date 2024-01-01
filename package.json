@@ -3,7 +3,7 @@
 	"type": "module",
 	"homepage": "https://github.com/hakusoda/rest-api#readme",
 	"repository": "https://github.com/hakusoda/rest-api.git",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"license": "MIT",
 	"scripts": {
 		"dev": "vite dev --port 5174",
