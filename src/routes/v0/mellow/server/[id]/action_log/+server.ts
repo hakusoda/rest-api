@@ -20,7 +20,7 @@ export async function GET({ locals: { getSession }, params: { id }, request }) {
 	const { limit, offset } = await parseQuery(request, QUERY_SCHEMA);
 
 	const response = await supabase.from('mellow_server_audit_logs')
-		.select('id, type, data, author:users( id, name, username, avatar_url ), created_at, target_action:mellow_binds ( id, name )', { count: 'planned' })
+		.select('id, type, data, author:users( id, name, username, avatar_url ), created_at, target_action:mellow_binds ( id, name ), target_webhook:mellow_server_webhooks ( id, name )', { count: 'planned' })
 		.eq('server_id', id)
 		.order('created_at', { ascending: false })
 		.range(offset, offset + Math.min(Math.max(limit, 0), 100) - 1);

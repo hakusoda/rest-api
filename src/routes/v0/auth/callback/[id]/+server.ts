@@ -4,9 +4,9 @@ import { redirect } from '@sveltejs/kit';
 
 import { error } from '$lib/response';
 import { parseQuery } from '$lib/util';
-import { MELLOW_API_KEY } from '$env/static/private';
 import { UserConnectionType } from '$lib/enums';
 import supabase, { handleResponse } from '$lib/supabase';
+import { MELLOW_TOKEN, MELLOW_API_KEY } from '$env/static/private';
 import { JWT_SECRET, WEBSITE_URL, USER_CONNECTION_CALLBACKS } from '$lib/constants';
 
 const ENUM = z.nativeEnum(UserConnectionType);
@@ -80,7 +80,7 @@ export async function GET({ url, locals: { getSession }, params, cookies, reques
 				headers: { 'x-api-key': MELLOW_API_KEY }
 			});
 		}
-		throw redirect(302, WEBSITE_URL + (mlw ? mlw[3] ? `/mellow/server/${mlw[1]}` : `/mellow/server/${mlw[1]}/onboarding?done&auto_select=${params.id}` : '/settings/account/connections'));
+		throw redirect(302, WEBSITE_URL + (mlw ? `/mellow/server/${mlw[1]}/onboarding?done&auto_select=${params.id}` : '/settings/account/connections'));
 	}
 
 	const { state } = await parseQuery(request, KEY_QUERY);
@@ -96,6 +96,25 @@ export async function GET({ url, locals: { getSession }, params, cookies, reques
 
 	cookies.set('auth-token', token, { path: '/', domain: '.hakumi.cafe', expires: new Date(Date.now() + 31556926000), sameSite: 'none', httpOnly: false });
 
-	const redirectUri = mlw ? `${WEBSITE_URL}/mellow/server/${mlw[1]}/onboarding` : url.searchParams.get('redirect_uri');
+	if (mlw?.[3]) {
+		const server = await fetch(`https://discord.com/api/v10/guilds/${mlw[1]}`, {
+			headers: { 'authorization': `Bot ${MELLOW_TOKEN}` }
+		}).then(response => response.json());
+
+		if (server.owner_id !== sub)
+			throw error(403, 'no_permission');
+		
+		handleResponse(await supabase.from('mellow_servers')
+			.insert({
+				id: mlw[1],
+				name: server.name,
+				creator_id: user_id,
+				avatar_url: `https://cdn.discordapp.com/icons/${mlw[1]}/${server.icon}.webp`,
+				owner_user_id: user_id
+			})
+		);
+	}
+
+	const redirectUri = mlw ? mlw[3] ? `/mellow/server/${mlw[1]}` : `/mellow/server/${mlw[1]}/onboarding` : url.searchParams.get('redirect_uri');
 	throw redirect(302, redirectUri?.startsWith('https://') ? redirectUri : `${WEBSITE_URL}${redirectUri || `/user/${user_id}`}`);
 }

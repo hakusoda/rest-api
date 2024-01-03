@@ -82,13 +82,14 @@ export async function createTeamAuditLog(type: TeamActionLogType, author_id: str
 		console.error(error);
 }
 
-export async function createMellowServerAuditLog(type: MellowActionLogItemType, author_id: string, server_id: string, data?: any, target_link_id?: string) {
+export async function createMellowServerAuditLog(type: MellowActionLogItemType, author_id: string, server_id: string, data?: any, target_link_id?: string, target_webhook_id?: string) {
 	const { error } = await supabase.from('mellow_server_audit_logs').insert({
 		type,
 		data,
 		author_id,
 		server_id,
-		target_link_id
+		target_link_id,
+		target_webhook_id
 	});
 	if (error)
 		console.error(error);

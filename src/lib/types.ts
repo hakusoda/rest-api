@@ -51,6 +51,9 @@ export type TeamActionLogType =
 
 export type MellowActionLogItemType =
 	'mellow.server.created' |
+	'mellow.server.webhook.created' |
+	'mellow.server.webhook.updated' |
+	'mellow.server.webhook.deleted' |
 	'mellow.server.syncing.action.created' |
 	'mellow.server.syncing.action.updated' |
 	'mellow.server.syncing.action.deleted' |
