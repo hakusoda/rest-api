@@ -31,16 +31,16 @@ export const handle = (async ({ event, resolve }) => {
 		});
 
 	const { pathname } = event.url;
-	if (pathname.startsWith('/v1/auth/sign-in'))
+	if (pathname.startsWith('/v0/auth/sign-in'))
 		await throwIfFeatureNotEnabled(ApiFeatureFlag.SignIn);
-	else if (pathname.startsWith('/v1/auth/sign-up'))
+	else if (pathname.startsWith('/v0/auth/sign-up'))
 		await throwIfFeatureNotEnabled(ApiFeatureFlag.SignUp);
-	else if (pathname.startsWith('/v1/auth/callback'))
+	else if (pathname.startsWith('/v0/auth/callback'))
 		await throwIfFeatureNotEnabled(ApiFeatureFlag.ThirdPartySignUp);
-	else if (pathname.startsWith('/v1/auth/device'))
+	else if (pathname.startsWith('/v0/auth/device'))
 		await throwIfFeatureNotEnabled(ApiFeatureFlag.SecurityKeys);
 
-	event.locals.getSession = async (required: boolean = true, verifyDevice = true) => {
+	event.locals.getSession = async (required: boolean = true) => {
 		const cookie = event.cookies.get(COOKIE_NAME) || event.request.headers.get('authorization');
 		if (!cookie) {
 			if (required)
@@ -48,35 +48,33 @@ export const handle = (async ({ event, resolve }) => {
 			return null as any;
 		}
 
-		const response = await jwtVerify(cookie, JWT_SECRET);
-		const payload = response.payload as any as UserSessionJWT;
-		if (verifyDevice) {
-			const [encodedSignature, encodedBody] = event.request.headers.get('something')?.split(':') ?? [];
-			if (!encodedSignature || !encodedBody)
-				throw error(401, 'missing_signature');
+		const { payload } = await jwtVerify<UserSessionJWT>(cookie, JWT_SECRET);
+		if (payload.source_connection_id && pathname.startsWith('/v0/auth/device'))
+			return payload;
+		
+		const [encodedSignature, encodedBody] = event.request.headers.get('something')?.split(':') ?? [];
+		if (!encodedSignature || !encodedBody)
+			throw error(401, 'missing_signature');
 
-			const deviceKey = payload.device_public_key;
-			if (!deviceKey)
-				throw error(401, 'missing_device_key');
-			if (deviceKey === 'mellow') // this is temporary
-				return payload;
+		const deviceKey = payload.device_public_key;
+		if (!deviceKey)
+			throw error(401, 'missing_device_key');
 
-			const key = await crypto.subtle.importKey('raw', base64.toArrayBuffer(deviceKey), {
-				name: 'ECDSA',
-				namedCurve: 'P-384',
-			}, false, ['verify']).catch(err => {
-				console.error(err);
-				throw error(401, 'missing_device_key');
-			});
+		const key = await crypto.subtle.importKey('raw', base64.toArrayBuffer(deviceKey), {
+			name: 'ECDSA',
+			namedCurve: 'P-384',
+		}, false, ['verify']).catch(err => {
+			console.error(err);
+			throw error(401, 'missing_device_key');
+		});
 
-			const signature = base64.toArrayBuffer(encodedSignature, false);
-			const body = base64.toArrayBuffer(encodedBody, false);
-			if (!await crypto.subtle.verify({
-				name: 'ECDSA',
-				hash: { name: 'SHA-384' }
-			}, key, signature, body))
-				throw error(401, 'invalid_signature');
-		}
+		const signature = base64.toArrayBuffer(encodedSignature, false);
+		const body = base64.toArrayBuffer(encodedBody, false);
+		if (!await crypto.subtle.verify({
+			name: 'ECDSA',
+			hash: { name: 'SHA-384' }
+		}, key, signature, body))
+			throw error(401, 'invalid_signature');
 
 		return payload;
 	};

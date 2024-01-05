@@ -1,3 +1,5 @@
+import type { UserConnectionType } from './enums';
+
 export interface UserAuthSignUpData {
 	id: string
 	username: string
@@ -22,6 +24,12 @@ export interface UserSessionJWT {
 	sub: string
 	iat: number
 	device_public_key: string
+
+	/** @deprecated */
+	source_connection_id?: string
+
+	/** @deprecated */
+	source_connection_type?: UserConnectionType
 }
 
 export interface MellowApiKeyServer {

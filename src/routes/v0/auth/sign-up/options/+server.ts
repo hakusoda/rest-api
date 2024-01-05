@@ -16,7 +16,8 @@ export async function POST({ request }) {
 
 	const response = await supabase.from('users')
 		.select('*', { head: true, count: 'exact' })
-		.eq('username', username);
+		.eq('username', username)
+		.limit(1);
 	handleResponse(response);
 
 	if (response.count)
