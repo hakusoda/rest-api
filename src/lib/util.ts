@@ -268,7 +268,6 @@ export function getRequestOrigin(request: Request, platformVersion = '10.0.0') {
 
 	const user_platform = parsedAgent.browser.name;
 	return {
-		user_ip: request.headers.get('cf-connecting-ip') || request.headers.get('x-forwarded-for'),
 		user_os: `${user_agent.includes('iPhone') ? 'iOS' : user_agent.includes('iPad') ? 'iPadOS' : parsedAgent.os.name} ${parsedAgent.os.name === 'Windows' && platformVersion?.split('.')[0] as any >= 13 ? 11 : parsedAgent.os.version}`,
 		user_agent,
 		user_country: request.headers.get('cf-ipcountry') || request.headers.get('x-vercel-ip-country'),
