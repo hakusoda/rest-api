@@ -25,6 +25,9 @@ export interface UserSessionJWT {
 	iat: number
 	device_public_key: string
 
+	mellow_username?: string
+	mellow_user_state?: string
+
 	/** @deprecated */
 	source_connection_id?: string
 

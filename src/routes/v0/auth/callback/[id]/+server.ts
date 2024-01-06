@@ -20,8 +20,9 @@ export async function GET({ url, locals: { getSession }, params }) {
 		.maybeSingle();
 	handleResponse(response);
 
+	let id = response.data?.id;
 	if (!response.data) {
-		handleResponse(await supabase.from('user_connections')
+		id = handleResponse(await supabase.from('user_connections')
 			.insert({
 				sub,
 				type,
@@ -31,7 +32,23 @@ export async function GET({ url, locals: { getSession }, params }) {
 				website_url,
 				display_name: name || username
 			})
+			.select('id')
+			.limit(1)
+			.single()
+		).data!.id;
+	}
+
+	const state = url.searchParams.get('state');
+	const match = state?.match(/mellow_onboarding_(.*)/)?.[1];
+	if (match) {
+		handleResponse(await supabase.from('mellow_user_server_connections')
+			.insert({
+				user_id: session.sub,
+				server_id: match,
+				connection_id: id
+			})
 		);
+		throw redirect(302, `${WEBSITE_URL}/mellow/server/${match}/onboarding?done`);
 	}
 
 	const redirectUrl = url.searchParams.get('redirect_url');

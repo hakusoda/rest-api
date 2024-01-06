@@ -41,13 +41,20 @@ export async function POST({ locals: { getSession }, cookies, request }) {
 		.single();
 	handleResponse(response2);
 
-	if (session.source_connection_id && device_public_key) {
+	if ((session.source_connection_id || session.mellow_user_state) && device_public_key) {
 		const token = await new SignJWT({ sub: session.sub, source_device_id: id, device_public_key })
 			.setProtectedHeader({ alg: 'HS256' })
 			.setIssuedAt()
 			.sign(JWT_SECRET);
 
 		cookies.set('auth-token', token, { path: '/', domain: '.hakumi.cafe', expires: new Date(Date.now() + 31556926000), sameSite: 'none', httpOnly: false });
+
+		const username = session.mellow_username;
+		if (username)
+			handleResponse(await supabase.from('users')
+				.update({ username })
+				.eq('id', session.sub)
+			);
 	}
 
 	return json(response2.data!);

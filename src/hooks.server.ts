@@ -49,7 +49,7 @@ export const handle = (async ({ event, resolve }) => {
 		}
 
 		const { payload } = await jwtVerify<UserSessionJWT>(cookie, JWT_SECRET);
-		if (payload.source_connection_id && pathname.startsWith('/v0/auth/device'))
+		if (pathname.startsWith('/v0/auth/callback/') || ((payload.source_connection_id || (payload.mellow_user_state && payload.exp)) && pathname.startsWith('/v0/auth/device')))
 			return payload;
 		
 		const [encodedSignature, encodedBody] = event.request.headers.get('something')?.split(':') ?? [];
