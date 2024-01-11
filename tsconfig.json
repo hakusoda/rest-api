@@ -6,6 +6,8 @@
 		"module": "esnext",
 		"skipLibCheck": true,
 		"esModuleInterop": true,
+		"moduleResolution": "node",
+		"resolveJsonModule": true,
 		"forceConsistentCasingInFileNames": true
 	}
 }

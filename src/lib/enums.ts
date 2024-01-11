@@ -9,6 +9,12 @@ export enum ApiFeatureFlag {
 	SecurityKeys = 1 << 6
 }
 
+export enum UserFlag {
+	None,
+	Staff = 1 << 1,
+	Tester = 1 << 2
+}
+
 export enum UserNotificationState {
 	Unread,
 	Read
