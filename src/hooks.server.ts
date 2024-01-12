@@ -24,7 +24,7 @@ export const handle = (async ({ event, resolve }) => {
 		return new Response(null, {
 			headers: {
 				'Access-Control-Allow-Origin': allowOrigin,
-				'Access-Control-Allow-Headers': 'content-type, something',
+				'Access-Control-Allow-Headers': 'content-type, haku-sig',
 				'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
 				'Access-Control-Allow-Credentials': 'true'
 			}
@@ -52,8 +52,8 @@ export const handle = (async ({ event, resolve }) => {
 		if (pathname.startsWith('/v0/auth/callback/') || ((payload.source_connection_id || (payload.mellow_user_state && payload.exp)) && pathname.startsWith('/v0/auth/device')))
 			return payload;
 		
-		const [encodedSignature, encodedBody] = event.request.headers.get('something')?.split(':') ?? [];
-		if (!encodedSignature || !encodedBody)
+		const signature = event.request.headers.get('haku-sig');
+		if (!signature)
 			throw error(401, 'missing_signature');
 
 		const deviceKey = payload.device_public_key;
@@ -68,12 +68,10 @@ export const handle = (async ({ event, resolve }) => {
 			throw error(401, 'missing_device_key');
 		});
 
-		const signature = base64.toArrayBuffer(encodedSignature, false);
-		const body = base64.toArrayBuffer(encodedBody, false);
 		if (!await crypto.subtle.verify({
 			name: 'ECDSA',
 			hash: { name: 'SHA-384' }
-		}, key, signature, body))
+		}, key, base64.toArrayBuffer(signature, false), new TextEncoder().encode(`${event.request.method} ${event.url.pathname}${event.url.search};${base64.fromArrayBuffer(await event.request.clone().arrayBuffer(), false)}`)))
 			throw error(401, 'invalid_signature');
 
 		return payload;
