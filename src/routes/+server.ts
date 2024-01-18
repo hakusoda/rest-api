@@ -13,5 +13,7 @@ export const GET = () => json({
 		author: VERCEL_GIT_COMMIT_AUTHOR_LOGIN,
 		repository,
 		website_url: `https://github.com/${repository}/commit/${VERCEL_GIT_COMMIT_SHA}`
-	}
+	},
+	reference_url: 'https://hakumi.cafe/reference/rest-api',
+	documentation_url: 'https://hakumi.cafe/docs/api'
 });
