@@ -5,6 +5,7 @@ import { SignJWT } from 'jose';
 
 import { error } from '$lib/response';
 import { JWT_SECRET } from '$lib/constants';
+import { MELLOW_API_KEY } from '$env/static/private';
 import type { UserAddDeviceData } from '$lib/types';
 import supabase, { handleResponse } from '$lib/supabase';
 import { parseBody, readAttestation, getRequestOrigin } from '$lib/util';
@@ -55,6 +56,17 @@ export async function POST({ locals: { getSession }, cookies, request }) {
 				.update({ username })
 				.eq('id', session.sub)
 			);
+
+		const mellow = session.mellow_user_state;
+		if (mellow && mellow.startsWith('setup_'))
+			await fetch(`https://mellow-internal-api.hakumi.cafe/server/${id}/member/${response.data!.sub}/sync`, {
+				body: '{"is_sign_up":true}',
+				method: 'POST',
+				headers: {
+					'x-api-key': MELLOW_API_KEY,
+					'content-type': 'application/json'
+				}
+			});
 	}
 
 	return json(response2.data!);
