@@ -6,3 +6,4 @@ avatar-processor
 yarn-error.*
 .yarn
 .env*.local
+.DS_STORE

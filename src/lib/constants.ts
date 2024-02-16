@@ -7,7 +7,7 @@ import { fetchJson } from './util';
 import { UserConnectionType } from '$lib/enums';
 import type { UserConnectionCallbackResponse } from './types';
 import { MellowProfileSyncActionType, MellowProfileSyncActionRequirementType, MellowProfileSyncActionRequirementsType } from '$lib/enums';
-import { JWT_SECRET as _JWT_SECRET, GITHUB_ID, ROBLOX_ID, DISCORD_ID, GITHUB_SECRET, ROBLOX_SECRET, DISCORD_SECRET, MELLOW_SERVER_API_ENCRYPTION_KEY as _MELLOW_SERVER_API_ENCRYPTION_KEY } from '$env/static/private';
+import { JWT_SECRET as _JWT_SECRET, GITHUB_ID, ROBLOX_ID, DISCORD_ID, GITHUB_SECRET, ROBLOX_SECRET, DISCORD_SECRET, YOUTUBE_OAUTH_SECRET, MELLOW_SERVER_API_ENCRYPTION_KEY as _MELLOW_SERVER_API_ENCRYPTION_KEY } from '$env/static/private';
 export const UUID_REGEX = /^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$/;
 export const USERNAME_REGEX = /^[\w-]+$/;
 export const DISPLAY_NAME_REGEX = /^[\w !@#$%^&*()-:;"'{}[\]?\\|~`<>]+$/;
@@ -66,7 +66,7 @@ export const MELLOW_SERVER_PROFILE_SYNC_ACTION_PAYLOAD = MELLOW_SERVER_PROFILE_S
 });
 
 export const USER_CONNECTION_CALLBACKS: Record<UserConnectionType, (url: URL) => Promise<UserConnectionCallbackResponse>> = {
-	[UserConnectionType.Discord]: async (url: URL) => {
+	[UserConnectionType.Discord]: async (url) => {
 		const code = url.searchParams.get('code');
 		if (!code)
 			throw error(400, 'invalid_query');
@@ -103,7 +103,7 @@ export const USER_CONNECTION_CALLBACKS: Record<UserConnectionType, (url: URL) =>
 			website_url: `https://discord.com/users/${id}`
 		};
 	},
-	[UserConnectionType.GitHub]: async (url: URL) => {
+	[UserConnectionType.GitHub]: async (url) => {
 		const code = url.searchParams.get('code');
 		if (!code)
 			throw error(400, 'invalid_query');
@@ -136,7 +136,7 @@ export const USER_CONNECTION_CALLBACKS: Record<UserConnectionType, (url: URL) =>
 			website_url: metadata.html_url
 		};
 	},
-	[UserConnectionType.Roblox]: async (url: URL) => {
+	[UserConnectionType.Roblox]: async (url) => {
 		const code = url.searchParams.get('code');
 		if (!code)
 			throw error(400, 'invalid_query');
@@ -170,11 +170,32 @@ export const USER_CONNECTION_CALLBACKS: Record<UserConnectionType, (url: URL) =>
 			avatar_url: picture,
 			website_url: profile
 		};
+	},
+	[UserConnectionType.YouTube]: async (url) => {
+		const code = url.searchParams.get('code');
+		if (!code)
+			throw error(400, 'invalid_query');
+
+		const { token_type, access_token } = await fetchJson(`https://oauth2.googleapis.com/token?client_id=934357807730-v456geqrn1fhuvtu42jg3fjel6ehv69m.apps.googleusercontent.com&client_secret=${YOUTUBE_OAUTH_SECRET}&code=${code}&grant_type=authorization_code&redirect_uri=https%3A%2F%2Flocal-api.hakumi.cafe%2Fv0%2Fauth%2Fcallback%2F3`, { method: 'POST' });
+		const { items: [ { id, snippet } ] } = await fetchJson('https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true', {
+			headers: {
+				authorization: `${token_type} ${access_token}`
+			}
+		});
+
+		return {
+			sub: id,
+			name: snippet.title,
+			username: snippet.customUrl.slice(1),
+			avatar_url: snippet.thumbnails.high.url,
+			website_url: `https://www.youtube.com/${snippet.customUrl}`
+		};
 	}
 };
 
 export const RELYING_PARTY_ID = 'hakumi.cafe';
 
+// “Secrets Are Secrets For A Reason”
 export const JWT_SECRET = new TextEncoder().encode(_JWT_SECRET);
 
 let mellowServerApiEncryptionKey: CryptoKey;
