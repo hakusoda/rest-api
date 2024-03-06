@@ -6,6 +6,7 @@ import { SignJWT } from 'jose';
 import { error } from '$lib/response';
 import { JWT_SECRET } from '$lib/constants';
 import { MELLOW_API_KEY } from '$env/static/private';
+import { UserConnectionType } from '$lib/enums';
 import type { UserAddDeviceData } from '$lib/types';
 import supabase, { handleResponse } from '$lib/supabase';
 import { parseBody, readAttestation, getRequestOrigin } from '$lib/util';
@@ -29,7 +30,7 @@ export async function POST({ locals: { getSession }, cookies, request }) {
 
 	const { id, publicKey } = readAttestation(attestation);
 
-	const response2 = await supabase.from('user_devices')
+	const response = await supabase.from('user_devices')
 		.insert({
 			id,
 			name,
@@ -40,7 +41,7 @@ export async function POST({ locals: { getSession }, cookies, request }) {
 		})
 		.select('id, name, user_os, user_country, user_platform')
 		.single();
-	handleResponse(response2);
+	handleResponse(response);
 
 	if ((session.source_connection_id || session.mellow_user_state) && device_public_key) {
 		const token = await new SignJWT({ sub: session.sub, source_device_id: id, device_public_key })
@@ -58,7 +59,14 @@ export async function POST({ locals: { getSession }, cookies, request }) {
 			);
 
 		const mellow = session.mellow_user_state;
-		if (mellow && mellow.startsWith('setup_'))
+		if (mellow && mellow.startsWith('setup_')) {
+			const response = handleResponse(await supabase.from('user_connections')
+				.select('sub')
+				.eq('type', UserConnectionType.Discord)
+				.eq('user_id', session.sub)
+				.limit(1)
+				.maybeSingle()
+			);
 			await fetch(`https://mellow-internal-api.hakumi.cafe/server/${id}/member/${response.data!.sub}/sync`, {
 				body: '{"is_sign_up":true}',
 				method: 'POST',
@@ -67,7 +75,8 @@ export async function POST({ locals: { getSession }, cookies, request }) {
 					'content-type': 'application/json'
 				}
 			});
+		}
 	}
 
-	return json(response2.data!);
+	return json(response.data!);
 }
