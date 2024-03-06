@@ -53,7 +53,7 @@ export async function POST({ locals: { getSession }, cookies, request }) {
 		const username = session.mellow_username;
 		if (username)
 			handleResponse(await supabase.from('users')
-				.update({ username })
+				.update({ username, mellow_pending_signup: false })
 				.eq('id', session.sub)
 			);
 
