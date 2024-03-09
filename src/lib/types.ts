@@ -71,4 +71,5 @@ export type MellowActionLogItemType =
 	'mellow.server.syncing.settings.updated' |
 	'mellow.server.discord_logging.updated' |
 	'mellow.server.api_key.created' |
-	'mellow.server.ownership.changed'
+	'mellow.server.ownership.changed' |
+	'mellow.server.automation.event.updated'
