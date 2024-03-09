@@ -1,5 +1,5 @@
 import { error } from '$lib/response';
-import { processAvatarImage } from '$lib/image';
+import { process_avatar_image } from '$lib/image';
 import supabase, { handleResponse } from '$lib/supabase';
 
 export const config = { runtime: 'nodejs20.x' };
@@ -8,7 +8,7 @@ export async function PATCH({ locals: { getSession }, params: { id }, request })
 	if (session.sub !== id)
 		throw error(403, 'forbidden');
 
-	const image = await processAvatarImage(await request.arrayBuffer());
+	const image = await process_avatar_image(await request.arrayBuffer());
 	const response = await supabase.storage.from('avatars').upload(`/user/${id}.${image.format}`, image.data, {
 		upsert: true,
 		contentType: `image/${image.format}`

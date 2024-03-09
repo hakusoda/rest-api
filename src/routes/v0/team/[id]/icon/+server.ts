@@ -1,7 +1,7 @@
 import { error } from '$lib/response';
 import { hasTeamPermissions } from '$lib/util';
 import { TeamRolePermission } from '$lib/enums';
-import { processAvatarImage } from '$lib/image';
+import { process_avatar_image } from '$lib/image';
 import supabase, { handleResponse } from '$lib/supabase';
 export const config = { runtime: 'nodejs20.x' };
 export async function PATCH({ locals: { getSession }, params: { id }, request }) {
@@ -9,7 +9,7 @@ export async function PATCH({ locals: { getSession }, params: { id }, request })
 	if (!await hasTeamPermissions(id, session.sub, [TeamRolePermission.ManageTeam]))
 		throw error(403, 'no_permission');
 
-	const image = await processAvatarImage(await request.arrayBuffer());
+	const image = await process_avatar_image(await request.arrayBuffer());
 	const response = await supabase.storage.from('avatars').upload(`/team/${id}.${image.format}`, image.data, {
 		upsert: true,
 		contentType: `image/${image.format}`
