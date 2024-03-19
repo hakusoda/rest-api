@@ -4,10 +4,10 @@ import { OpenCloudClient, exchangeOAuthCodeForMethod } from '@voxelified/roblox-
 
 import { error } from './response';
 import { fetchJson } from './util';
-import { UserConnectionType } from '$lib/enums';
+import { UserConnectionType } from './enums';
 import type { UserConnectionCallbackResponse } from './types';
 import { MellowProfileSyncActionType, MellowProfileSyncActionRequirementType, MellowProfileSyncActionRequirementsType } from '$lib/enums';
-import { JWT_SECRET as _JWT_SECRET, GITHUB_ID, ROBLOX_ID, DISCORD_ID, GITHUB_SECRET, ROBLOX_SECRET, DISCORD_SECRET, YOUTUBE_OAUTH_SECRET, MELLOW_SERVER_API_ENCRYPTION_KEY as _MELLOW_SERVER_API_ENCRYPTION_KEY } from '$env/static/private';
+import { JWT_SECRET as _JWT_SECRET, GITHUB_ID, ROBLOX_ID, DISCORD_ID, GITHUB_SECRET, ROBLOX_SECRET, DISCORD_SECRET, PATREON_OAUTH_SECRET, YOUTUBE_OAUTH_SECRET, MELLOW_SERVER_API_ENCRYPTION_KEY as _MELLOW_SERVER_API_ENCRYPTION_KEY } from '$env/static/private';
 export const UUID_REGEX = /^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$/;
 export const USERNAME_REGEX = /^[\w-]+$/;
 export const DISPLAY_NAME_REGEX = /^[\w !@#$%^&*()-:;"'{}[\]?\\|~`<>]+$/;
@@ -189,6 +189,39 @@ export const USER_CONNECTION_CALLBACKS: Record<UserConnectionType, (url: URL) =>
 			username: snippet.customUrl.slice(1),
 			avatar_url: snippet.thumbnails.high.url,
 			website_url: `https://www.youtube.com/${snippet.customUrl}`
+		};
+	},
+	[UserConnectionType.Patreon]: async (url) => {
+		const code = url.searchParams.get('code');
+		if (!code)
+			throw error(400, 'invalid_query');
+
+		const { scope, expires_in, token_type, access_token, refresh_token } = await fetchJson(`https://www.patreon.com/api/oauth2/token?client_id=BaKp_8PIeBxx0cfJoEEaVxVQMxD3c_IUFS_qCSu5gNFnXLL5c4Qw4YMPtgMJG-n9&client_secret=${PATREON_OAUTH_SECRET}&code=${code}&redirect_uri=${encodeURIComponent(`https://${url.hostname}${url.pathname}`)}&grant_type=authorization_code`, {
+			method: 'POST',
+			headers: {
+				'content-type': 'application/x-www-form-urlencoded'
+			}
+		});
+
+		const { data: { id, attributes: { full_name, image_url } } } = await fetchJson(`https://www.patreon.com/api/oauth2/v2/identity?fields%5Buser%5D=full_name,image_url`, {
+			headers: {
+				authorization: `${token_type} ${access_token}`
+			}
+		});
+
+		return {
+			sub: id,
+			name: full_name,
+			username: id,
+			avatar_url: image_url,
+			website_url: `https://www.patreon.com/user?u=${id}`,
+			oauth_authorisation: {
+				scopes: (scope as string).split(' '),
+				expires_at: new Date(Date.now() + expires_in * 1000),
+				token_type,
+				access_token,
+				refresh_token
+			}
 		};
 	}
 };

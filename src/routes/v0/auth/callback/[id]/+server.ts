@@ -10,7 +10,7 @@ const ENUM = z.nativeEnum(UserConnectionType);
 export async function GET({ url, locals: { getSession }, params }) {
 	const type = await ENUM.parseAsync(parseInt(params.id)).catch(() => { throw error(400, 'invalid_type') });
 	const session = await getSession();
-	const { sub, name, username, avatar_url, website_url } = await USER_CONNECTION_CALLBACKS[type](url);
+	const { sub, name, username, avatar_url, website_url, oauth_authorisation } = await USER_CONNECTION_CALLBACKS[type](url);
 
 	const response = await supabase.from('user_connections')
 		.select('id')
@@ -37,6 +37,15 @@ export async function GET({ url, locals: { getSession }, params }) {
 			.single()
 		).data!.id;
 	}
+
+	if (oauth_authorisation)
+		handleResponse(await supabase.from('user_connection_oauth_authorisations')
+			.insert({
+				user_id: session.sub,
+				connection_id: id,
+				...oauth_authorisation
+			})
+		);
 
 	const state = url.searchParams.get('state');
 	const match = state?.match(/mellow_onboarding_(.*)/)?.[1];

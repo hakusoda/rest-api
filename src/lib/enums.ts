@@ -24,7 +24,8 @@ export enum UserConnectionType {
 	Discord,
 	GitHub,
 	Roblox,
-	YouTube
+	YouTube,
+	Patreon
 }
 
 export enum TeamRolePermission {

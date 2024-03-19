@@ -45,6 +45,7 @@ export interface UserConnectionCallbackResponse {
 	username: string
 	avatar_url?: string | null
 	website_url?: string | null
+	oauth_authorisation?: any
 }
 
 export type TeamActionLogType =
