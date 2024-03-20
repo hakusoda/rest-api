@@ -55,7 +55,8 @@ export enum MellowProfileSyncActionRequirementType {
 	RobloxHaveAsset,
 	RobloxHaveBadge,
 	RobloxHavePass,
-	GitHubInOrganisation
+	GitHubInOrganisation,
+	PatreonHaveCampaignTier
 }
 export enum MellowProfileSyncActionRequirementsType {
 	MeetAll,
