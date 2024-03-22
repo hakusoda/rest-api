@@ -71,7 +71,7 @@ export async function GET({ url, locals: { getSession }, params }) {
 				.limit(1)
 				.single()
 			);
-			await fetch(`https://mellow-internal-api.hakumi.cafe/server/${id}/member/${response.data!.sub}/sync`, {
+			await fetch(`https://mellow-internal-api.hakumi.cafe/server/${data[1]}/member/${response.data!.sub}/sync`, {
 				body: '{"is_sign_up":true}',
 				method: 'POST',
 				headers: {
