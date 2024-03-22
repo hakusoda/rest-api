@@ -49,7 +49,7 @@ export const handle = (async ({ event, resolve }) => {
 		}
 
 		const { payload } = await jwtVerify<UserSessionJWT>(cookie, JWT_SECRET);
-		if (pathname.startsWith('/v0/auth/callback/') || pathname.startsWith('/v0/mellow/service_callback/') || ((payload.source_connection_id || (payload.mellow_user_state && payload.exp)) && pathname.startsWith('/v0/auth/device')))
+		if (payload.is_mellow_session || pathname.startsWith('/v0/auth/callback/') || pathname.startsWith('/v0/mellow/service_callback/') || (payload.source_connection_id && pathname.startsWith('/v0/auth/device')))
 			return payload;
 		
 		const signature = event.request.headers.get('haku-sig');

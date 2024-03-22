@@ -13,13 +13,12 @@ export async function GET({ url, locals: { getSession }, cookies }) {
 		throw error(400, 'missing_state');
 
 	const { sub, name, username, avatar_url, website_url } = await USER_CONNECTION_CALLBACKS[UserConnectionType.Discord](url);
-
 	const user_id = session ? session.sub : handleResponse(await supabase.from('users')
 		.insert({
 			name,
-			username: `mellow_${crypto.randomUUID()}`,
+			username,
 			avatar_url,
-			mellow_pending_signup: true
+			created_via_mellow: true
 		})
 		.select('id')
 		.limit(1)
@@ -39,18 +38,16 @@ export async function GET({ url, locals: { getSession }, cookies }) {
 	);
 
 	if (!session) {
-		const token = await new SignJWT({
-			sub: user_id,
-			mellow_username: username,
-			mellow_user_state: state
-		})
+		const token = await new SignJWT({ sub: user_id, is_mellow_session: true })
 			.setProtectedHeader({ alg: 'HS256' })
 			.setIssuedAt()
-			.setExpirationTime('5m')
 			.sign(JWT_SECRET);
 
-		cookies.set('auth-token', token, { path: '/', domain: '.hakumi.cafe', expires: new Date(Date.now() + 300000), sameSite: 'none', httpOnly: false });
+		cookies.set('auth-token', token, { path: '/', domain: '.hakumi.cafe', expires: new Date(Date.now() + 31556926000), sameSite: 'none', httpOnly: false });
 	}
 
-	throw redirect(302, `${WEBSITE_URL}/mellow/finish_signup`);
+	const sync = state.match(/^sync\.(\d+)$/);
+	if (sync)
+		throw redirect(302, `${WEBSITE_URL}/mellow/server/${sync[1]}/user_settings?as_new_member`);
+	throw error(400, 'you_appear_to_be_lost')
 }

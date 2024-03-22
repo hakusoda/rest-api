@@ -176,7 +176,7 @@ export const USER_CONNECTION_CALLBACKS: Record<UserConnectionType, (url: URL) =>
 		if (!code)
 			throw error(400, 'invalid_query');
 
-		const { token_type, access_token } = await fetchJson(`https://oauth2.googleapis.com/token?client_id=934357807730-v456geqrn1fhuvtu42jg3fjel6ehv69m.apps.googleusercontent.com&client_secret=${YOUTUBE_OAUTH_SECRET}&code=${code}&grant_type=authorization_code&redirect_uri=https%3A%2F%2Flocal-api.hakumi.cafe%2Fv0%2Fauth%2Fcallback%2F3`, { method: 'POST' });
+		const { token_type, access_token } = await fetchJson(`https://oauth2.googleapis.com/token?client_id=934357807730-v456geqrn1fhuvtu42jg3fjel6ehv69m.apps.googleusercontent.com&client_secret=${YOUTUBE_OAUTH_SECRET}&code=${code}&grant_type=authorization_code&redirect_uri=https%3A%2F%2Fapi.hakumi.cafe%2Fv0%2Fauth%2Fcallback%2F3`, { method: 'POST' });
 		const { items: [ { id, snippet } ] } = await fetchJson('https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true', {
 			headers: {
 				authorization: `${token_type} ${access_token}`

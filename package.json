@@ -13,7 +13,6 @@
 		"prepare": "svelte-kit sync",
 		"pull-env": "vercel env pull .env.local"
 	},
-	"packageManager": "yarn@4.0.0-rc.51",
 	"devDependencies": {
 		"@sveltejs/adapter-vercel": "^5.1.0",
 		"@sveltejs/kit": "^2.5.3",

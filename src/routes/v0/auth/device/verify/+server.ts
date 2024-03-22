@@ -43,39 +43,13 @@ export async function POST({ locals: { getSession }, cookies, request }) {
 		.single();
 	handleResponse(response);
 
-	if ((session.source_connection_id || session.mellow_user_state) && device_public_key) {
+	if (session.source_connection_id && device_public_key) {
 		const token = await new SignJWT({ sub: session.sub, source_device_id: id, device_public_key })
 			.setProtectedHeader({ alg: 'HS256' })
 			.setIssuedAt()
 			.sign(JWT_SECRET);
 
 		cookies.set('auth-token', token, { path: '/', domain: '.hakumi.cafe', expires: new Date(Date.now() + 31556926000), sameSite: 'none', httpOnly: false });
-
-		const username = session.mellow_username;
-		if (username)
-			handleResponse(await supabase.from('users')
-				.update({ username, mellow_pending_signup: false })
-				.eq('id', session.sub)
-			);
-
-		const mellow = session.mellow_user_state;
-		if (mellow && mellow.startsWith('setup_')) {
-			const response = handleResponse(await supabase.from('user_connections')
-				.select('sub')
-				.eq('type', UserConnectionType.Discord)
-				.eq('user_id', session.sub)
-				.limit(1)
-				.maybeSingle()
-			);
-			await fetch(`https://mellow-internal-api.hakumi.cafe/server/${id}/member/${response.data!.sub}/sync`, {
-				body: '{"is_sign_up":true}',
-				method: 'POST',
-				headers: {
-					'x-api-key': MELLOW_API_KEY,
-					'content-type': 'application/json'
-				}
-			});
-		}
 	}
 
 	return json(response.data!);
