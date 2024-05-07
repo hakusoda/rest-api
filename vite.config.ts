@@ -4,5 +4,8 @@ export default {
 	build: {
 		target: 'esnext'
 	},
-	plugins: [sveltekit()]
+	plugins: [sveltekit()],
+	optimizeDeps: {
+		include: ['@supabase/postgrest-js']
+	}
 } satisfies UserConfig;

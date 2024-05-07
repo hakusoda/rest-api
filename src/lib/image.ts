@@ -1,4 +1,14 @@
 import { Image, createCanvas } from '@napi-rs/canvas';
+export function get_image_accent_colour(image: Image) {
+	const canvas = createCanvas(1, 1);
+	const context = canvas.getContext('2d');
+	context.drawImage(image, 1, 1);
+
+	// doesn't work well, try https://github.com/rtcoder/dominant-color/blob/main/src/dominant-color.ts
+	const { data } = context.getImageData(0, 0, 1, 1);
+	return (data[2] | data[1] << 8 | data[0] << 16) | 1 << 24;
+}
+
 export async function process_avatar_image(image: ArrayBuffer) {
 	const img = new Image();
 	img.src = Buffer.from(image);
@@ -15,6 +25,7 @@ export async function process_avatar_image(image: ArrayBuffer) {
 
 	return {
 		data: await canvas.encode('avif', { quality: 100 }),
-		format: 'avif'
+		format: 'avif',
+		accent_colour: get_image_accent_colour(img)
 	};
 }

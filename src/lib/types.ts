@@ -61,6 +61,9 @@ export type TeamActionLogType =
 
 export type MellowActionLogItemType =
 	'mellow.server.created' |
+	'mellow.server.command.created' |
+	'mellow.server.command.updated' |
+	'mellow.server.command.deleted' |
 	'mellow.server.webhook.created' |
 	'mellow.server.webhook.updated' |
 	'mellow.server.webhook.deleted' |
@@ -71,4 +74,5 @@ export type MellowActionLogItemType =
 	'mellow.server.discord_logging.updated' |
 	'mellow.server.api_key.created' |
 	'mellow.server.ownership.changed' |
-	'mellow.server.automation.event.updated'
+	'mellow.server.automation.event.updated' |
+	'mellow.server.visual_scripting.document.updated'

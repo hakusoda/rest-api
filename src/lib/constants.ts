@@ -1,13 +1,13 @@
 import { z } from 'zod';
 import base64 from '@hexagon/base64';
-import { OpenCloudClient, exchangeOAuthCodeForMethod } from '@voxelified/roblox-open-cloud';
+import { OpenCloudClient, exchangeOAuthCodeForMethod } from '@hakumi/roblox-open-cloud';
 
 import { error } from './response';
 import { fetchJson } from './util';
 import { UserConnectionType } from './enums';
 import type { UserConnectionCallbackResponse } from './types';
 import { MellowProfileSyncActionType, MellowProfileSyncActionRequirementType, MellowProfileSyncActionRequirementsType } from '$lib/enums';
-import { JWT_SECRET as _JWT_SECRET, GITHUB_ID, ROBLOX_ID, DISCORD_ID, GITHUB_SECRET, ROBLOX_SECRET, DISCORD_SECRET, PATREON_OAUTH_SECRET, YOUTUBE_OAUTH_SECRET, MELLOW_SERVER_API_ENCRYPTION_KEY as _MELLOW_SERVER_API_ENCRYPTION_KEY } from '$env/static/private';
+import { JWT_SECRET as _JWT_SECRET, GITHUB_ID, ROBLOX_ID, DISCORD_ID, GITHUB_SECRET, ROBLOX_SECRET, DISCORD_SECRET, PATREON_OAUTH_SECRET, YOUTUBE_OAUTH_SECRET, MELLOW_SERVER_API_ENCRYPTION_KEY as _MELLOW_SERVER_API_ENCRYPTION_KEY, MELLOW_COMMUNICATION_KEY } from '$env/static/private';
 export const UUID_REGEX = /^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$/;
 export const USERNAME_REGEX = /^[\w-]+$/;
 export const DISPLAY_NAME_REGEX = /^[\w !@#$%^&*()-:;"'{}[\]?\\|~`<>]+$/;
@@ -229,11 +229,20 @@ export const USER_CONNECTION_CALLBACKS: Record<UserConnectionType, (url: URL) =>
 export const RELYING_PARTY_ID = 'hakumi.cafe';
 
 // “Secrets Are Secrets For A Reason”
-export const JWT_SECRET = new TextEncoder().encode(_JWT_SECRET);
+const encoder = new TextEncoder();
+export const JWT_SECRET = encoder.encode(_JWT_SECRET);
 
 let mellowServerApiEncryptionKey: CryptoKey;
 export async function getMellowServerApiEncryptionKey() {
 	return mellowServerApiEncryptionKey ??= await crypto.subtle.importKey('raw', base64.toArrayBuffer(_MELLOW_SERVER_API_ENCRYPTION_KEY, false), {
+		name: 'AES-GCM',
+		length: 256,
+	}, false, ['encrypt', 'decrypt']);
+}
+
+let mellow_communication_key: CryptoKey;
+export async function get_mellow_communication_key() {
+	return mellow_communication_key ??= await crypto.subtle.importKey('raw', base64.toArrayBuffer(MELLOW_COMMUNICATION_KEY, false), {
 		name: 'AES-GCM',
 		length: 256,
 	}, false, ['encrypt', 'decrypt']);

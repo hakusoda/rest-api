@@ -1,24 +1,15 @@
 import { json } from '@sveltejs/kit';
-import type { ZodType } from 'zod';
 
 import { error } from '$lib/response';
-import supabase, { handleResponse } from '$lib/supabase';
-import { parseBody, createMellowServerAuditLog, isUserMemberOfMellowServer } from '$lib/util';
-import { MELLOW_SERVER_PROFILE_SYNC_ACTION_PAYLOAD_TRANSFORMER, MELLOW_SERVER_PROFILE_SYNC_ACTION_PAYLOAD_UNTRANSFORMED } from '$lib/constants';
+import supabase, { header, handleResponse } from '$lib/supabase';
+import { parseBody, isUserMemberOfMellowServer } from '$lib/util';
+import { SYNC_ACTION_TRANSFORMER, SYNC_ACTION_UNTRANSFORMED } from '$lib/schemas/mellow/syncing';
 export async function PATCH({ locals: { getSession }, params: { id, action_id }, request }) {
 	const session = await getSession();
 	if (!await isUserMemberOfMellowServer(session.sub, id))
 		throw error(403, 'no_permission');
 
-	const response = await supabase.from('mellow_binds')
-		.select('id, name, type, metadata, creator:users ( name, username ), created_at, requirements:mellow_bind_requirements ( id, type, data ), requirements_type')
-		.eq('id', action_id)
-		.eq('server_id', id)
-		.limit(1)
-		.single();
-	handleResponse(response);
-
-	const body = await parseBody(request, (MELLOW_SERVER_PROFILE_SYNC_ACTION_PAYLOAD_UNTRANSFORMED.partial() as ZodType).transform(v => ({ ...v, type: v.type ?? response.data!.type })).transform(MELLOW_SERVER_PROFILE_SYNC_ACTION_PAYLOAD_TRANSFORMER));
+	const body = await parseBody(request, SYNC_ACTION_UNTRANSFORMED.partial().transform(SYNC_ACTION_TRANSFORMER));
 	const author = await supabase.from('users')
 		.select('name, username')
 		.eq('id', session.sub)
@@ -26,63 +17,25 @@ export async function PATCH({ locals: { getSession }, params: { id, action_id },
 		.single();
 	handleResponse(author);
 
-	let final = {
-		...response.data!,
-		last_edit: {
-			type: '',
-			author: author.data!,
-			created_at: Date.now()
-		}
-	};
-	if (body.name !== undefined || body.type !== undefined || body.metadata !== undefined || body.requirements_type !== undefined) {
-		const response2 = await supabase.from('mellow_binds')
-			.update({
-				name: body.name,
-				type: body.type,
-				metadata: body.metadata,
-				requirements_type: body.requirements_type
-			})
+	if (body.kind || body.criteria || body.action_data || body.display_name) {
+		const response = handleResponse(
+			await header(supabase.from('mellow_server_sync_actions')
+				.update({
+					...body,
+					updated_at: new Date(),
+					updated_by: session.sub
+				}),
+				'x-actionee-id', session.sub
+			)
 			.eq('id', action_id)
 			.eq('server_id', id)
-			.select('id, name, type, metadata, creator:users ( name, username ), created_at, requirements_type')
-			.single();
-		handleResponse(response2);
-
-		final = {
-			...final,
-			...response2.data
-		};
+			.select('id, kind, criteria, action_data, display_name, creator:users!mellow_server_sync_actions_creator_id_fkey ( name, username ), created_at, updated_at, updated_by:users!mellow_server_sync_actions_updated_by_fkey ( name, username )')
+			.single()
+		);
+		return json(response.data);
 	}
 
-	if (body.requirements) {
-		const response3 = await supabase.from('mellow_bind_requirements')
-			.delete()
-			.eq('bind_id', action_id);
-		handleResponse(response3);
-
-		if (body.requirements.length) {
-			const response4 = await supabase.from('mellow_bind_requirements')
-				.insert(body.requirements.map(item => ({
-					...item,
-					bind_id: action_id
-				})))
-				.select('id, type, data');
-			handleResponse(response4);
-
-			final.requirements = response4.data!;
-		} else
-			final.requirements = [];
-	}
-
-	await createMellowServerAuditLog('mellow.server.syncing.action.updated', session.sub, id, {
-		name: [response.data!.name, body.name],
-		type: [response.data!.type, body.type],
-		metadata: [response.data!.metadata, body.metadata],
-		requirements: [response.data!.requirements, body.requirements],
-		requirements_type: [response.data!.requirements_type, body.requirements_type]
-	}, action_id);
-
-	return json(final);
+	return new Response(null, { status: 201 });
 }
 
 export async function DELETE({ locals: { getSession }, params: { id, action_id } }) {
@@ -90,16 +43,14 @@ export async function DELETE({ locals: { getSession }, params: { id, action_id }
 	if (!await isUserMemberOfMellowServer(session.sub, id))
 		throw error(403, 'no_permission');
 
-	const response = await supabase.from('mellow_binds')
-		.delete()
+	handleResponse(
+		await header(supabase.from('mellow_server_sync_actions')
+			.delete(),
+			'x-actionee-id', session.sub
+		)
 		.eq('id', action_id)
 		.eq('server_id', id)
-		.select('name');
-	handleResponse(response);
+	);
 
-	await createMellowServerAuditLog('mellow.server.syncing.action.deleted', session.sub, id, {
-		name: response.data![0].name
-	});
-
-	return new Response();
+	return new Response(null, { status: 201 });
 }

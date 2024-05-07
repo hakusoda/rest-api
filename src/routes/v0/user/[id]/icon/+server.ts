@@ -34,7 +34,7 @@ export async function PATCH({ locals: { getSession }, params: { id }, request })
 		avatar_url = `${target}?v=${Number(new URL(avatar_url).searchParams.get('v')) + 1}`;
 
 	const response3 = await supabase.from('users')
-		.update({ avatar_url })
+		.update({ avatar_url, accent_colour: image.accent_colour })
 		.eq('id', id)
 	handleResponse(response3);
 

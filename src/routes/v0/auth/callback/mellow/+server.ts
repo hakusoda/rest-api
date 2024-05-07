@@ -4,8 +4,7 @@ import { redirect } from '@sveltejs/kit';
 import { error } from '$lib/response';
 import { UserConnectionType } from '$lib/enums';
 import supabase, { handleResponse } from '$lib/supabase';
-import { JWT_SECRET, WEBSITE_URL, USER_CONNECTION_CALLBACKS } from '$lib/constants';
-
+import { JWT_SECRET, WEBSITE_URL, USER_CONNECTION_CALLBACKS, get_mellow_communication_key } from '$lib/constants';
 export async function GET({ url, locals: { getSession }, cookies }) {
 	const session = await getSession(false);
 	const state = url.searchParams.get('state');
@@ -49,5 +48,10 @@ export async function GET({ url, locals: { getSession }, cookies }) {
 	const sync = state.match(/^sync\.(\d+)$/);
 	if (sync)
 		throw redirect(302, `${WEBSITE_URL}/mellow/server/${sync[1]}/user_settings?as_new_member`);
+
+	/*const setup = state.match(/^setup\.(.+)$/);
+	if (setup) {
+		const key = await get_mellow_communication_key();
+	}*/
 	throw error(400, 'you_appear_to_be_lost')
 }

@@ -62,3 +62,10 @@ export enum MellowProfileSyncActionRequirementsType {
 	MeetAll,
 	MeetOne
 }
+
+export enum MellowServerLogType {
+	None,
+	ActionLog = 1 << 0,
+	ServerProfileSync = 1 << 1,
+	VisualScriptingDocumentResult = 1 << 3
+}
